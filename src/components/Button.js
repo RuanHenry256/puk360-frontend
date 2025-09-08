@@ -13,13 +13,13 @@ const Button = ({
   // Base button styles
   const baseStyles = 'font-semibold rounded-lg transition duration-200 focus:outline-none focus:ring-2';
   
-  // Variant styles
+  // Variant styles (using custom Tailwind colors)
   const variants = {
-    primary: 'bg-gray-300 hover:bg-gray-400 text-gray-700 focus:ring-gray-500',
-    secondary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
-    outline: 'border-2 border-gray-300 hover:border-gray-400 text-gray-700 bg-transparent hover:bg-gray-50 focus:ring-gray-500',
-    link: 'text-blue-600 hover:text-blue-800 underline bg-transparent p-0 rounded-none focus:ring-blue-500',
-    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
+    primary: 'bg-primary hover:bg-purple-800 text-surface focus:ring-primary',
+    secondary: 'bg-secondary hover:bg-teal-800 text-surface focus:ring-secondary',
+    outline: 'border-2 border-primary hover:border-secondary text-primary bg-transparent hover:bg-gray-100 focus:ring-primary',
+    link: 'text-secondary hover:text-accent underline bg-transparent p-0 rounded-none focus:ring-secondary',
+    danger: 'bg-red-600 hover:bg-red-700 text-surface focus:ring-red-500'
   };
   
   // Size styles
