@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import Button from './components/Button'; // ✅ Import your reusable Button
+import Button from './components/Button'; // Ensure this path is correct
 
-const LoginScreen = () => {
+const LoginScreen = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -19,6 +19,8 @@ const LoginScreen = () => {
   const handleSubmit = () => {
     if (isLogin) {
       console.log('Login attempt:', { email: formData.email, password: formData.password });
+      // Simulate successful login
+      onLoginSuccess(); // Call this function to switch views
       alert('Login submitted! Check console for details.');
     } else {
       if (formData.password !== formData.confirmPassword) {
