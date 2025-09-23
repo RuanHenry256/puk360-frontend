@@ -57,77 +57,32 @@ body {
 
 /* Event Listing Styles */
 .event-listing {
+  display: flex;
+  flex-direction: column; /* Ensures elements stack vertically */
+  align-items: center;    /* Centers items horizontally */
   padding: 20px;
-  max-width: 600px;
-  width: 100%;
 }
 
-.event-listing h1 {
-  margin-bottom: 20px;
-  text-align: center;
+.event-cards {
+  width: 100%;            /* Ensures cards take full width */
 }
 
-.event-listing ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.event-listing li {
-  background-color: #ffffff;
+.event-card {
+  flex: 1 1 300px;            /* Flex-grow, flex-shrink, flex-basis */
+  margin: 10px;               /* Space between cards */
   padding: 15px;
-  margin: 10px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Login Screen Styles */
-.min-h-screen {
-  min-height: 100vh;
-}
-
-.bg-surface {
-  background-color: #ffffff;
-}
-
-.text-primary {
-  color: #4a90e2; /* Replace with your primary color */
-}
-
-.text-secondary {
-  color: #7f8c8d; /* Replace with your secondary color */
+  background-color: #ffffff;  /* Card background */
+  border: 1px solid #ddd;     /* Card border */
+  border-radius: 8px;         /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+  text-align: center;         /* Center text */
 }
 
 button {
-  cursor: pointer;
-}
-
-/* Button Styles */
-button.primary {
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
-}
-
-button.primary:hover {
-  background-color: #357ab8;
-}
-
-button.outline {
-  background-color: transparent;
-  border: 2px solid #4a90e2;
-  color: #4a90e2;
-  padding: 10px 20px;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
-}
-
-button.outline:hover {
-  background-color: #4a90e2;
-  color: white;
+  margin-top: 20px;          /* Add space above the button */
+  display: block;             /* Ensures button is a block element */
+  margin-left: auto;         /* Center the button */
+  margin-right: auto;        /* Center the button */
 }
 
 /* Responsive Styles */
@@ -137,6 +92,6 @@ button.outline:hover {
   }
 
   button {
-    width: 100%;
+    width: 100%;              /* Ensures button takes full width on small screens */
   }
 }

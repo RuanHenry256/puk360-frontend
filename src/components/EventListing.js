@@ -13,15 +13,14 @@ const sampleEvents = [
 ];
 
 const EventListing = ({ onBackToLogin }) => {
-  const [events, setEvents] = useState(sampleEvents);
-  const [filteredEvents, setFilteredEvents] = useState(events);
+  const [filteredEvents, setFilteredEvents] = useState(sampleEvents);
   const [filters, setFilters] = useState({ date: '', category: '', location: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEventId, setSelectedEventId] = useState(null); // State for toggling event details
 
   useEffect(() => {
     const applyFilters = () => {
-      let newFilteredEvents = events;
+      let newFilteredEvents = sampleEvents; // Use sampleEvents directly
 
       // Filter by date
       if (filters.date) {
@@ -49,7 +48,7 @@ const EventListing = ({ onBackToLogin }) => {
     };
 
     applyFilters();
-  }, [filters, searchTerm, events]);
+  }, [filters, searchTerm]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
