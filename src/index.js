@@ -1,3 +1,7 @@
+/**
+ * React entry point.
+ * Creates the root and renders the App component.
+ */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

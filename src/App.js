@@ -1,7 +1,13 @@
+/**
+ * Application root component.
+ * Renders the login screen first; after successful login shows a blank page.
+ */
 import React, { useState } from 'react';
-import LoginScreen from './LoginScreen'; // Ensure this path is correct
-import EventListing from './components/EventListing'; // Update this path
+import LoginScreen from './LoginScreen'; // Make sure the path is correct
 import './App.css';
+import BlankPage from './BlankPage';
+import EventListing from './components/EventListing'; // Update this path
+
 
 function App() {
   const [currentView, setCurrentView] = useState('login'); // 'login' or 'events'

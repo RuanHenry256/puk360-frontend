@@ -1,3 +1,7 @@
+/**
+ * Reusable Button component.
+ * Supports variants, sizes, full-width and disabled states via Tailwind classes.
+ */
 import React from 'react';
 
 const Button = ({ 
