@@ -1,3 +1,7 @@
+/**
+ * Web Vitals reporter helper (CRA).
+ * Optionally measures and reports performance metrics via provided callback.
+ */
 const reportWebVitals = onPerfEntry => {
   if (onPerfEntry && onPerfEntry instanceof Function) {
     import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {

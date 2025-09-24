@@ -1,3 +1,7 @@
+/**
+ * Sample CRA test.
+ * Verifies the default app renders content (placeholder test scaffold).
+ */
 import { render, screen } from '@testing-library/react';
 import App from './App';
 

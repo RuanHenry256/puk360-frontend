@@ -1,42 +1,91 @@
+/**
+ * Login and registration screen.
+ * Lets users enter credentials to sign in or create an account, calls the API,
+ * stores JWT + user in localStorage, and notifies parent on success.
+ */
 import React, { useState } from 'react';
-import Button from './components/Button'; // ✅ Import your reusable Button
+import Button from './components/Button'; // Ensure this path is correct
+import { api } from './api/client';
 
-const LoginScreen = () => {
+const LoginScreen = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
+    name: '',          // only used for register
     email: '',
     password: '',
     confirmPassword: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");   // show backend errors
+  const [success, setSuccess] = useState(""); // show success messages
 
   const handleInputChange = (e) => {
+    setError("");
+    setSuccess("");
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = () => {
-    if (isLogin) {
-      console.log('Login attempt:', { email: formData.email, password: formData.password });
-      alert('Login submitted! Check console for details.');
-    } else {
-      if (formData.password !== formData.confirmPassword) {
-        alert('Passwords do not match!');
+  const handleSubmit = async () => {
+    setError("");
+    setSuccess("");
+
+    if (!formData.email || !formData.password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    if (!isLogin) {
+      if (!formData.name) {
+        setError("Please enter your name.");
         return;
       }
-      console.log('Create account attempt:', formData);
-      alert('Account creation submitted! Check console for details.');
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+    }
+
+    try {
+      setLoading(true);
+
+      if (isLogin) {
+        // LOGIN
+        const { token, user } = await api.login(formData.email, formData.password);
+        // store token for later authenticated calls
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        setSuccess("Logged in successfully.");
+        // Notify parent to switch to blank page
+        if (typeof onLoginSuccess === 'function') onLoginSuccess();
+      } else {
+        // REGISTER (name, email, password)
+        const { token, user } = await api.register(formData.name, formData.email, formData.password);
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        setSuccess("Account created successfully.");
+        // Optionally switch to login mode:
+        // setIsLogin(true);
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleToggleMode = () => {
     setIsLogin(!isLogin);
-    setFormData({ email: '', password: '', confirmPassword: '' });
+    setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+    setError("");
+    setSuccess("");
   };
 
   const handleBecomeHost = () => {
-    console.log('Become an event host clicked');
+    // You can navigate to a Host Request page here
+    // navigate('/host-request');
     alert('Redirecting to host request page...');
   };
 
@@ -61,9 +110,30 @@ const LoginScreen = () => {
 
           {/* Card Container */}
           <div className="bg-surface rounded-lg shadow-xl p-6 sm:p-8">
+
+            {/* Status messages */}
+            {error && (
+              <div className="mb-4 text-red-600 text-sm">{error}</div>
+            )}
+            {success && (
+              <div className="mb-4 text-green-600 text-sm">{success}</div>
+            )}
             
             {/* Form Section */}
             <div className="flex flex-col space-y-4 mb-6">
+              {!isLogin && (
+                <div className="flex flex-col">
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Full name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder-gray-500 transition duration-200"
+                  />
+                </div>
+              )}
+
               <div className="flex flex-col">
                 <input
                   type="email"
@@ -107,14 +177,16 @@ const LoginScreen = () => {
                 variant="primary" 
                 fullWidth={true}
                 size="large"
+                disabled={loading}
               >
-                {isLogin ? 'Log in' : 'Create account'}
+                {loading ? (isLogin ? 'Logging in…' : 'Creating…') : (isLogin ? 'Log in' : 'Create account')}
               </Button>
 
               <Button 
                 onClick={handleToggleMode}
                 variant="outline" 
                 fullWidth={true}
+                disabled={loading}
               >
                 {isLogin ? 'Create account' : 'Back to login'}
               </Button>
