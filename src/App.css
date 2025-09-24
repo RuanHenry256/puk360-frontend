@@ -1,3 +1,4 @@
+/* Existing Styles */
 .App {
   text-align: center;
 }
@@ -34,5 +35,63 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* New Styles for Event Listing and Login Screen */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #f0f4f8;
+  color: #333;
+}
+
+/* App Container */
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* Event Listing Styles */
+.event-listing {
+  display: flex;
+  flex-direction: column; /* Ensures elements stack vertically */
+  align-items: center;    /* Centers items horizontally */
+  padding: 20px;
+}
+
+.event-cards {
+  width: 100%;            /* Ensures cards take full width */
+}
+
+.event-card {
+  flex: 1 1 300px;            /* Flex-grow, flex-shrink, flex-basis */
+  margin: 10px;               /* Space between cards */
+  padding: 15px;
+  background-color: #ffffff;  /* Card background */
+  border: 1px solid #ddd;     /* Card border */
+  border-radius: 8px;         /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+  text-align: center;         /* Center text */
+}
+
+button {
+  margin-top: 20px;          /* Add space above the button */
+  display: block;             /* Ensures button is a block element */
+  margin-left: auto;         /* Center the button */
+  margin-right: auto;        /* Center the button */
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+  .event-listing {
+    padding: 10px;
+  }
+
+  button {
+    width: 100%;              /* Ensures button takes full width on small screens */
   }
 }
