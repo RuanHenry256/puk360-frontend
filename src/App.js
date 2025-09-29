@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import LoginScreen from './LoginScreen'; // Make sure the path is correct
 import './App.css';
 import EventDetail from "./components/EventDetail";
-import BlankPage from './BlankPage';
+//import BlankPage from './BlankPage';
 import EventListing from './components/EventListing'; // Update this path
 
 
