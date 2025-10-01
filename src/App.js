@@ -8,7 +8,7 @@ import './App.css';
 import EventDetail from "./components/EventDetail";
 //import BlankPage from './BlankPage';
 import EventListing from './components/EventListing'; // Update this path
-
+//testing commit
 
 function App() {
   const [currentView, setCurrentView] = useState('login'); // 'login' or 'events'
