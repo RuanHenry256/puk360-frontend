@@ -12,10 +12,20 @@ function App() {
   const [selectedEventId, setSelectedEventId] = useState(null);
 
   const handleLoginSuccess = () => setView('events');
-  const handleBackToLogin = () => { setView('login'); setSelectedEventId(null); };
+  const handleBackToLogin = () => { 
+    setView('login'); 
+    setSelectedEventId(null); 
+  };
 
-  const handleSelectEvent = (id) => { setSelectedEventId(id); setView('details'); };
-  const handleBackToList = () => { setView('events'); setSelectedEventId(null); };
+  const handleSelectEvent = (id) => { 
+    setSelectedEventId(id); 
+    setView('details'); 
+  };
+
+  const handleBackToList = () => { 
+    setView('events'); 
+    setSelectedEventId(null); 
+  };
 
   return (
     <div className="App">
