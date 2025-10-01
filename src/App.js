@@ -1,52 +1,51 @@
 /**
  * Application root component.
- * Renders the login screen first; after successful login shows a blank page.
+ * Renders the login screen first; after successful login shows events, then details.
  */
 import React, { useState } from 'react';
-import LoginScreen from './LoginScreen'; // Make sure the path is correct
-import './App.css';
-import EventDetail from "./components/EventDetail";
-//import BlankPage from './BlankPage';
-import EventListing from './components/EventListing'; // Update this path
-//testing commit
+import LoginScreen from './LoginScreen';
+import EventListing from './EventListing';
+import EventDetails from './EventDetails';
 
 function App() {
-  const [currentView, setCurrentView] = useState('login'); // 'login' or 'events'
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [view, setView] = useState('login'); // 'login' | 'events' | 'details'
+  const [selectedEventId, setSelectedEventId] = useState(null);
 
-  const handleLoginSuccess = () => {
-    setCurrentView('events'); // Switch to event listing upon successful login
+  const handleLoginSuccess = () => setView('events');
+  const handleBackToLogin = () => { 
+    setView('login'); 
+    setSelectedEventId(null); 
   };
 
-  const handleBackToLogin = () => {
-    setCurrentView('login'); // Switch back to login screen
+  const handleSelectEvent = (id) => { 
+    setSelectedEventId(id); 
+    setView('details'); 
   };
 
-  const handleSelectEvent = (event) => {
-    setSelectedEvent(event);
-    setCurrentView('detail');
-  };
-
-  const handleBackToListing = () => {
-    setSelectedEvent(null);
-    setCurrentView('events');
+  const handleBackToList = () => { 
+    setView('events'); 
+    setSelectedEventId(null); 
   };
 
   return (
     <div className="App">
-      {currentView === 'login' ? (
-        <LoginScreen onLoginSuccess={handleLoginSuccess} />
-      ) : currentView === 'events' ? (
+      {view === 'login' && <LoginScreen onLoginSuccess={handleLoginSuccess} />}
+
+      {view === 'events' && (
         <EventListing
           onBackToLogin={handleBackToLogin}
           onSelectEvent={handleSelectEvent}
         />
-      ) : (
-        <EventDetail event={selectedEvent} onBack={handleBackToListing} />
+      )}
+
+      {view === 'details' && (
+        <EventDetails
+          eventId={selectedEventId}
+          onBack={handleBackToList}
+        />
       )}
     </div>
   );
 }
-
 
 export default App;

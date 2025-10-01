@@ -58,9 +58,8 @@ body {
 /* Event Listing Styles */
 .event-listing {
   display: flex;
-  flex-direction: column; /* Ensures elements stack vertically */
-  align-items: center;    /* Centers items horizontally */
-  padding: 20px;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .event-cards {
@@ -78,20 +77,9 @@ body {
   text-align: center;         /* Center text */
 }
 
-button {
-  margin-top: 20px;          /* Add space above the button */
-  display: block;             /* Ensures button is a block element */
-  margin-left: auto;         /* Center the button */
-  margin-right: auto;        /* Center the button */
-}
-
 /* Responsive Styles */
 @media (max-width: 600px) {
   .event-listing {
     padding: 10px;
-  }
-
-  button {
-    width: 100%;              /* Ensures button takes full width on small screens */
   }
 }
