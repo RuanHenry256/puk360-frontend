@@ -1,0 +1,102 @@
+/* =========================
+   NWU diagonal two-plane bg
+   =========================
+   Tweak:
+   - --tile-w controls the rendered width per logo tile.
+   - Keep the 480x128 aspect via --h-over-w.
+   - Animation distance is an integer multiple of tile width -> seamless loop.
+*/
+
+:root{
+  --tile-w: 90px;               /* width of one repeated logo */
+  --h-over-w: 0.2666667;        /* 128 / 480 (logo aspect) */
+  --tile-h: calc(var(--tile-w) * var(--h-over-w));   /* exact logo height (row height) */
+  --half-col: calc(var(--tile-w) / 2);               /* half a column for stagger */
+  --pan-x: calc(var(--tile-w) * 20);                 /* move by whole tiles */
+}
+
+.nwu-background{
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Shared base for both planes */
+.nwu-background::before,
+.nwu-background::after{
+  content:"";
+  position:absolute;
+
+  /* Oversized, then rotated to cover viewport */
+  top:-50%;
+  left:-50%;
+  width:300%;
+  height:300%;
+
+  background-image:url('./assets/nwu-logo.png');
+  background-repeat:repeat;
+  background-size: var(--tile-w) auto;  /* lock width; height follows ratio */
+  opacity:0.10;
+
+  transform-origin:center;
+  transform:rotate(-45deg);
+  will-change:background-position;
+}
+
+/* -----------------
+   Plane 1: rows ON
+   ----------------- */
+.nwu-background::before{
+  /* rows start at 0,0 */
+  background-position: 0 0;
+
+  /* show one row (0→tile-h), hide next (tile-h→2*tile-h) */
+  -webkit-mask-image: repeating-linear-gradient(
+    to bottom,
+    #000 0 var(--tile-h),
+    transparent var(--tile-h) calc(2 * var(--tile-h))
+  );
+          mask-image: repeating-linear-gradient(
+    to bottom,
+    #000 0 var(--tile-h),
+    transparent var(--tile-h) calc(2 * var(--tile-h))
+  );
+
+  animation: panA 40s linear infinite;
+}
+
+/* -----------------
+   Plane 2: rows OFF (complement), staggered sideways by half a column
+   Note: only X is shifted; Y stays aligned so each visible band is a full logo row.
+   ----------------- */
+.nwu-background::after{
+  /* half-column horizontal offset for the stagger, no vertical offset */
+  background-position: var(--half-col) 0;
+
+  /* complement mask: hide where plane 1 shows, show the gaps */
+  -webkit-mask-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 var(--tile-h),
+    #000 var(--tile-h) calc(2 * var(--tile-h))
+  );
+          mask-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 var(--tile-h),
+    #000 var(--tile-h) calc(2 * var(--tile-h))
+  );
+
+  animation: panB 40s linear infinite;
+}
+
+/* Seamless horizontal pan (move by whole tiles).
+   Each plane keeps its own Y position constant so rows never drift. */
+@keyframes panA{
+  from { background-position:        0 0; }
+  to   { background-position: var(--pan-x) 0; }
+}
+@keyframes panB{
+  from { background-position:  var(--half-col) 0; }
+  to   { background-position: calc(var(--pan-x) + var(--half-col)) 0; }
+}

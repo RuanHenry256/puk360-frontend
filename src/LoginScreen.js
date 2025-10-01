@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import Button from './components/Button'; // Ensure this path is correct
 import { api } from './api/client';
+import './NWUBackground.css'; // background CSS
+import nwuLogo from './assets/nwu-logo-round-main.png'; // ✅ actual logo
 
 const LoginScreen = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,8 +18,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");   // show backend errors
-  const [success, setSuccess] = useState(""); // show success messages
+  const [error, setError] = useState("");   
+  const [success, setSuccess] = useState(""); 
 
   const handleInputChange = (e) => {
     setError("");
@@ -54,20 +56,16 @@ const LoginScreen = ({ onLoginSuccess }) => {
       if (isLogin) {
         // LOGIN
         const { token, user } = await api.login(formData.email, formData.password);
-        // store token for later authenticated calls
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
         setSuccess("Logged in successfully.");
-        // Notify parent to switch to blank page
         if (typeof onLoginSuccess === 'function') onLoginSuccess();
       } else {
-        // REGISTER (name, email, password)
+        // REGISTER
         const { token, user } = await api.register(formData.name, formData.email, formData.password);
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
         setSuccess("Account created successfully.");
-        // Optionally switch to login mode:
-        // setIsLogin(true);
       }
     } catch (err) {
       setError(err.message || "Something went wrong.");
@@ -84,126 +82,161 @@ const LoginScreen = ({ onLoginSuccess }) => {
   };
 
   const handleBecomeHost = () => {
-    // You can navigate to a Host Request page here
-    // navigate('/host-request');
     alert('Redirecting to host request page...');
   };
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
-      <div className="flex-1 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen relative flex flex-col">
+      {/* Background */}
+      <div className="nwu-background"></div>
+
+      {/* Foreground content */}
+      <div className="flex-1 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="w-full max-w-md mx-auto">
           
           {/* Header Section */}
-          <div className="flex flex-col items-center mb-8 space-y-4">
+          <div className="flex flex-col items-center mb-10 space-y-5">
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-gray-500 text-sm font-medium">Logo</span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-primary">PUK360</h1>
+              {/* ✅ Real logo (slightly larger) */}
+              <img
+                src={nwuLogo}
+                alt="NWU logo"
+                className="w-[68px] h-[68px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
+              />
+              {/* ✅ Punchier title */}
+              <h1 className="text-5xl sm:text-4xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                PUK360
+              </h1>
             </div>
-            
-            <h2 className="text-xl sm:text-2xl font-semibold text-secondary text-center">
+
+            <h2 className="text-lg sm:text-xl font-semibold text-secondary text-center">
               {isLogin ? 'Log in as student' : 'Create student account'}
             </h2>
           </div>
 
-          {/* Card Container */}
-          <div className="bg-surface rounded-lg shadow-xl p-6 sm:p-8">
+          {/* Card Container — two layers */}
+          <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden">
+            {/* BACKDROP LAYER */}
+            <div className="
+              absolute inset-0
+              bg-primary/6 dark:bg-primary-dm/8
+              backdrop-blur-[3px]
+              supports-[backdrop-filter:none]:bg-white/92
+            " />
 
-            {/* Status messages */}
-            {error && (
-              <div className="mb-4 text-red-600 text-sm">{error}</div>
-            )}
-            {success && (
-              <div className="mb-4 text-green-600 text-sm">{success}</div>
-            )}
-            
-            {/* Form Section */}
-            <div className="flex flex-col space-y-4 mb-6">
-              {!isLogin && (
+            {/* CONTENT LAYER */}
+            <div className="relative z-10 p-6 sm:p-8">
+              {/* Status messages */}
+              {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
+              {success && <div className="mb-4 text-green-600 text-sm">{success}</div>}
+              
+              {/* Form Section */}
+              <div className="flex flex-col space-y-4 mb-6">
+                {!isLogin && (
+                  <div className="flex flex-col">
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Full name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 
+                                 bg-white dark:bg-surface-dm
+                                 border border-primary/20 dark:border-primary-dm/25 
+                                 rounded-xl focus:outline-none focus:ring-2 
+                                 focus:ring-primary/40 dark:focus:ring-primary-dm/40 
+                                 placeholder-black/40 dark:placeholder-white/40 
+                                 transition duration-200"
+                    />
+                  </div>
+                )}
+
                 <div className="flex flex-col">
                   <input
-                    type="text"
-                    name="name"
-                    placeholder="Full name"
-                    value={formData.name}
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder-gray-500 transition duration-200"
+                    className="w-full px-4 py-3 
+                               bg-white dark:bg-surface-dm
+                               border border-primary/20 dark:border-primary-dm/25 
+                               rounded-xl focus:outline-none focus:ring-2 
+                               focus:ring-primary/40 dark:focus:ring-primary-dm/40 
+                               placeholder-black/40 dark:placeholder-white/40 
+                               transition duration-200"
                   />
                 </div>
-              )}
 
-              <div className="flex flex-col">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder-gray-500 transition duration-200"
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder-gray-500 transition duration-200"
-                />
-              </div>
-
-              {!isLogin && (
                 <div className="flex flex-col">
                   <input
                     type="password"
-                    name="confirmPassword"
-                    placeholder="Confirm Password"
-                    value={formData.confirmPassword}
+                    name="password"
+                    placeholder="Password"
+                    value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder-gray-500 transition duration-200"
+                    className="w-full px-4 py-3 
+                               bg-white dark:bg-surface-dm
+                               border border-primary/20 dark:border-primary-dm/25 
+                               rounded-xl focus:outline-none focus:ring-2 
+                               focus:ring-primary/40 dark:focus:ring-primary-dm/40 
+                               placeholder-black/40 dark:placeholder-white/40 
+                               transition duration-200"
                   />
+                </div>
+
+                {!isLogin && (
+                  <div className="flex flex-col">
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      placeholder="Confirm Password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 
+                                 bg-white dark:bg-surface-dm
+                                 border border-primary/20 dark:border-primary-dm/25 
+                                 rounded-xl focus:outline-none focus:ring-2 
+                                 focus:ring-primary/40 dark:focus:ring-primary-dm/40 
+                                 placeholder-black/40 dark:placeholder-white/40 
+                                 transition duration-200"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-col space-y-3">
+                <Button 
+                  onClick={handleSubmit} 
+                  variant="primary" 
+                  fullWidth={true}
+                  size="large"
+                  disabled={loading}
+                >
+                  {loading ? (isLogin ? 'Logging in…' : 'Creating…') : (isLogin ? 'Log in' : 'Create account')}
+                </Button>
+
+                <Button 
+                  onClick={handleToggleMode}
+                  variant="outline" 
+                  fullWidth={true}
+                  disabled={loading}
+                >
+                  {isLogin ? 'Create account' : 'Back to login'}
+                </Button>
+              </div>
+
+              {/* Host Request */}
+              {isLogin && (
+                <div className="flex flex-col items-center mt-8 pt-6 border-t border-primary/20 dark:border-primary-dm/25 space-y-2">
+                  <p className="text-primary text-center dark:text-primary-dm">Become an event host?</p>
+                  <Button onClick={handleBecomeHost} variant="link">
+                    Request Now
+                  </Button>
                 </div>
               )}
             </div>
-
-            {/* Buttons */}
-            <div className="flex flex-col space-y-3">
-              <Button 
-                onClick={handleSubmit} 
-                variant="primary" 
-                fullWidth={true}
-                size="large"
-                disabled={loading}
-              >
-                {loading ? (isLogin ? 'Logging in…' : 'Creating…') : (isLogin ? 'Log in' : 'Create account')}
-              </Button>
-
-              <Button 
-                onClick={handleToggleMode}
-                variant="outline" 
-                fullWidth={true}
-                disabled={loading}
-              >
-                {isLogin ? 'Create account' : 'Back to login'}
-              </Button>
-            </div>
-
-            {/* Host Request */}
-            {isLogin && (
-              <div className="flex flex-col items-center mt-8 pt-6 border-t border-gray-200 space-y-2">
-                <p className="text-primary text-center">Become an event host?</p>
-                <Button
-                  onClick={handleBecomeHost}
-                  variant="link"
-                >
-                  Request Now
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </div>
