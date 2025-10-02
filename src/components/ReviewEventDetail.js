@@ -38,7 +38,7 @@ export default function ReviewEventDetail() {
     setShowGuidelines(false);
   };
 
-  // Mock user data
+  // Mock user data can use data from the BD
   const user = {
     firstName: "Kamo",
     email: "Kamo@gmail.com"
