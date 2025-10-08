@@ -5,7 +5,8 @@
 import React, { useState } from 'react';
 import LoginScreen from './pages/LoginScreen';
 import EventListing from './pages/EventListing';
-import EventDetails from './pages/EventDetails';
+// import EventDetails from './pages/EventDetails';
+import ReviewEventDetail from './pages/ReviewEventDetail';
 import StudentProfile from './pages/StudentProfile';
 import EventHostRequest from './pages/EventHostRequest'; // 🟣 Added
 import { api } from './api/client';
@@ -13,7 +14,6 @@ import './styles/App.css';
 
 function App() {
   const [view, setView] = useState('login'); // 'login' | 'events' | 'details' | 'profile' | 'hostrequest'
-  const [selectedEventId, setSelectedEventId] = useState(null);
   const [visitedEventIds, setVisitedEventIds] = useState([]);
   const [user, setUser] = useState(() => {
     try {
@@ -26,6 +26,7 @@ function App() {
   });
 
   const handleLoginSuccess = () => {
+    // Reverted: After successful login go to events feed (default flow)
     setView('events');
     try {
       const stored = localStorage.getItem('user');
@@ -41,17 +42,13 @@ function App() {
   };
 
   const handleSelectEvent = (id) => {
-    setSelectedEventId(id);
     setView('details');
     setVisitedEventIds((previous) =>
       previous.includes(id) ? previous : [...previous, id]
     );
   };
 
-  const handleBackToList = () => {
-    setView('events');
-    setSelectedEventId(null);
-  };
+  // Removed unused handleBackToList (was for EventDetails)
 
   const handleShowProfile = () => {
     setView('profile');
@@ -61,12 +58,15 @@ function App() {
     setView('events');
   };
 
+  const handleBackFromDetails = () => {
+    setView('events');
+  };
+
   const handleSignOut = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
     setVisitedEventIds([]);
-    setSelectedEventId(null);
     setView('login');
   };
 
@@ -106,12 +106,9 @@ function App() {
         />
       )}
 
+
       {view === 'details' && (
-        <EventDetails
-          eventId={selectedEventId}
-          onBack={handleBackToList}
-          onShowProfile={handleShowProfile}
-        />
+        <ReviewEventDetail onBack={handleBackFromDetails} onShowProfile={handleShowProfile} />
       )}
 
       {view === 'profile' && (

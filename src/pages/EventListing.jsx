@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { sampleEvents, formatEventDate } from './sampleEvents';
 import Button from '../components/Button';
-import ProfileButton from '../components/ProfileButton';
+import TopBar from '../components/TopBar';
 import '../styles/filterPanel.css';
 
 export default function EventListing({ onSelectEvent, onShowProfile }) {
@@ -30,23 +30,19 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
 
   return (
     <div className="event-listing bg-surface text-text">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-primary sm:text-4xl">Event Listings</h1>
-              <p className="text-sm text-secondary sm:text-base">Discover what's happening across campuses.</p>
-            </div>
-            <ProfileButton onClick={onShowProfile} ariaLabel="Open profile" title="Open profile" />
-          </div>
-          <span className="text-sm font-medium text-secondary sm:text-right">
+      <TopBar onProfileClick={onShowProfile} />
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
+        <header className="flex flex-col items-center gap-2 text-center">
+          <h1 className="text-3xl font-bold text-primary sm:text-4xl">Event Listings</h1>
+          <p className="text-sm text-secondary sm:text-base">Discover what's happening across campuses.</p>
+          <span className="text-sm font-medium text-secondary">
             {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
           </span>
         </header>
 
         {/* Search + Filters */}
         <section
-          className={"filter-panel flex flex-col rounded-2xl border border-secondary/40 bg-white/90 shadow-sm px-4 sm:px-6 " + (filtersOpen ? 'filter-panel--open' : 'filter-panel--closed')}
+          className={"filter-panel flex flex-col rounded-2xl border border-secondary/40 bg-primary/5 shadow-sm px-4 sm:px-6 " + (filtersOpen ? 'filter-panel--open' : 'filter-panel--closed')}
         >
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-secondary">Filters</h2>
@@ -143,7 +139,7 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
               tabIndex={0}
               onClick={() => onSelectEvent(event.id)}
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelectEvent(event.id)}
-              className="flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-secondary/40 bg-white shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
               aria-label={`View details for ${event.title}`}
             >
               <img src={event.image} alt={event.title} className="h-48 w-full object-cover sm:h-64" />

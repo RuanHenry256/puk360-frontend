@@ -4,6 +4,14 @@
  * stores JWT + user in localStorage, and notifies parent on success.
  */
 import React, { useState } from 'react';
+// TEMPORARY (for rapid admin UI iteration): Admin dashboard import
+// - Scoped within LoginScreen so removing this button removes all bypass artifacts.
+// - IMPORTANT: Delete this import and related code when done.
+import AdminDashboard from './AdminMainDash';
+// TEMPORARY (for rapid host UI iteration): Host dashboard import
+// - Encapsulated in this file to avoid persistent access paths.
+// - IMPORTANT: Delete this import and related code when done.
+import HostMain from './HostMain';
 import Button from '../components/Button'; // Ensure this path is correct
 import { api } from '../api/client';
 import '../styles/NWUBackground.css'; // background CSS
@@ -11,6 +19,15 @@ import nwuLogo from '../assets/nwu-logo-round-main.png'; // ✅ actual logo
 
 const LoginScreen = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
+  // TEMPORARY state toggled by the !!!ADMIN button.
+  // When true, we render the Admin dashboard directly from LoginScreen,
+  // completely bypassing auth for design/testing only.
+  // Removing the button and this state fully disables the bypass.
+  const [showAdminBypass, setShowAdminBypass] = useState(false);
+  // TEMPORARY state toggled by the !!!HOST button.
+  // Mirrors the admin bypass but routes to the host workspace.
+  // Removal of this and the related button fully eliminates the bypass.
+  const [showHostBypass, setShowHostBypass] = useState(false);
   const [formData, setFormData] = useState({
     name: '',          // only used for register
     email: '',
@@ -80,6 +97,11 @@ const LoginScreen = ({ onLoginSuccess }) => {
     setError("");
     setSuccess("");
   };
+
+  // If a temporary bypass is active, render the destination directly.
+  // NOTE: These bypasses are fully encapsulated in this file.
+  if (showAdminBypass) return <AdminDashboard />;
+  if (showHostBypass) return <HostMain />;
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -224,6 +246,54 @@ const LoginScreen = ({ onLoginSuccess }) => {
               </div>
 
               {/* Host request entry moved to Profile screen */}
+
+              {/**
+               * TEMPORARY!!! ADMIN BYPASS BUTTON
+               * --------------------------------------------------------------
+               * - Purpose: Quickly open Admin dashboard without credentials
+               *            to speed up design and testing of admin UI.
+               * - Behavior: Sets a local state flag that replaces this screen
+               *             with the Admin dashboard component.
+               * - Scope: All bypass logic lives only in this file to ensure
+               *          that removing this block removes ALL artifacts.
+               * - Removal: Delete this entire block (import, state, button,
+               *            early return) when done. No other file contains a
+               *            path to the admin view.
+               * --------------------------------------------------------------
+               */}
+              <div className="mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAdminBypass(true)}
+                  className="w-full rounded-md border border-red-400 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
+                >
+                  !!!ADMIN
+                </button>
+              </div>
+
+              {/**
+               * TEMPORARY!!! HOST BYPASS BUTTON
+               * --------------------------------------------------------------
+               * - Purpose: Quickly open Host workspace without credentials
+               *            to speed up design and testing of host UI.
+               * - Behavior: Sets a local state flag that replaces this screen
+               *             with the HostMain component.
+               * - Scope: All bypass logic lives only in this file to ensure
+               *          that removing this block removes ALL artifacts.
+               * - Removal: Delete this entire block (import, state, button,
+               *            early return) when done. No other file contains a
+               *            path to the host view.
+               * --------------------------------------------------------------
+               */}
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowHostBypass(true)}
+                  className="w-full rounded-md border border-blue-400 px-4 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50"
+                >
+                  !!!HOST
+                </button>
+              </div>
             </div>
           </div>
         </div>

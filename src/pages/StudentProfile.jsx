@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Button from '../components/Button';
+import TopBar from '../components/TopBar';
 import { sampleEvents, formatEventDate } from './sampleEvents';
 
 const StudentProfile = ({
@@ -103,17 +104,10 @@ const StudentProfile = ({
 
   return (
     <div className="min-h-screen bg-surface text-text">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 rounded-2xl border border-secondary/40 bg-white/90 p-6 shadow-sm">
+      <TopBar onBack={onBack} backLabel="Back to Events" />
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
+        <header className="flex flex-col gap-2 rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
           <div className="flex flex-col gap-4">
-            <Button
-              type="button"
-              onClick={onBack}
-              variant="link"
-              className="inline-flex items-center self-start rounded-lg border border-secondary/60 bg-white px-3 py-1.5 text-sm font-semibold text-secondary no-underline hover:border-primary hover:text-primary"
-            >
-              ← Back
-            </Button>
             <div>
               <p className="text-sm uppercase tracking-wide text-secondary">Profile</p>
               <h1 className="text-3xl font-bold text-primary sm:text-4xl">Hello, {fallbackName}</h1>
@@ -127,7 +121,7 @@ const StudentProfile = ({
           )}
         </header>
 
-        <section className="rounded-2xl border border-secondary/30 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm">
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-semibold text-primary">Your details</h2>
@@ -139,60 +133,53 @@ const StudentProfile = ({
             </div>
             {isEditing && (
               <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="primary"
-                  onClick={handleSaveProfile}
-                  disabled={!isDirty || isSaving}
-                >
-                  {isSaving ? 'Saving...' : 'Save changes'}
-                </Button>
-                <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                <Button type="button" variant="outline" onClick={handleCancelEdit} size="small">
                   Cancel
+                </Button>
+                <Button type="button" variant="primary" onClick={handleSaveProfile} disabled={!isDirty || isSaving} size="small">
+                  {isSaving ? 'Saving…' : 'Save changes'}
                 </Button>
               </div>
             )}
-          </div>
 
-          {isEditing ? (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm font-medium text-secondary">
-                Name
-                <input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="rounded-lg border border-secondary/60 px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
-                />
-              </label>
-              <label className="flex flex-col gap-2 text-sm font-medium text-secondary">
-                Email
-                <input
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="rounded-lg border border-secondary/60 px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
-                />
-              </label>
-            </div>
-          ) : (
-            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl bg-secondary/10 p-4">
-                <dt className="text-sm font-medium text-secondary">Name</dt>
-                <dd className="text-lg font-semibold text-primary">{fallbackName}</dd>
+            {isEditing ? (
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-2 text-sm font-medium text-secondary">
+                  Name
+                  <input
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="rounded-lg border border-secondary/60 px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </label>
+                <label className="flex flex-col gap-2 text-sm font-medium text-secondary">
+                  Email
+                  <input
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="rounded-lg border border-secondary/60 px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </label>
               </div>
-              <div className="rounded-xl bg-secondary/10 p-4">
-                <dt className="text-sm font-medium text-secondary">Email</dt>
-                <dd className="text-lg font-semibold text-primary break-words">{fallbackEmail}</dd>
-              </div>
-            </dl>
-          )}
+            ) : (
+              <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl bg-secondary/10 p-4">
+                  <dt className="text-sm font-medium text-secondary">Name</dt>
+                  <dd className="text-lg font-semibold text-primary">{fallbackName}</dd>
+                </div>
+                <div className="rounded-xl bg-secondary/10 p-4">
+                  <dt className="text-sm font-medium text-secondary">Email</dt>
+                  <dd className="text-lg font-semibold text-primary break-words">{fallbackEmail}</dd>
+                </div>
+              </dl>
+            )}
+          </div>
         </section>
 
-        
-
-        <section className="rounded-2xl border border-secondary/30 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-primary">Visited events</h2>
             <span className="text-sm text-secondary">{visitedEvents.length} total</span>
@@ -207,7 +194,7 @@ const StudentProfile = ({
               {visitedEvents.map((event) => (
                 <li
                   key={event.id}
-                  className="flex flex-col gap-2 rounded-xl border border-secondary/30 bg-white p-4 shadow-sm"
+                  className="flex flex-col gap-2 rounded-xl border border-secondary/30 bg-primary/5 p-4 shadow-sm"
                 >
                   <h3 className="text-lg font-semibold text-primary">{event.title}</h3>
                   <p className="text-sm text-secondary">{formatEventDate(event.date)}</p>
@@ -222,7 +209,7 @@ const StudentProfile = ({
         </section>
 
         {/* Host request entry (moved below visited events) */}
-        <section className="rounded-2xl border border-secondary/30 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-primary">Become an Event Host</h2>
@@ -280,5 +267,3 @@ const StudentProfile = ({
 };
 
 export default StudentProfile;
-
-
