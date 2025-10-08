@@ -1,15 +1,27 @@
 // src/EventDetails.jsx
 import React from 'react';
 import { sampleEvents, formatEventDate } from './sampleEvents';
+import Button from '../components/Button';
+import ProfileButton from '../components/ProfileButton';
 
-export default function EventDetails({ eventId, onBack }) {
+export default function EventDetails({ eventId, onBack, onShowProfile }) {
   const event = sampleEvents.find(e => e.id === eventId);
 
   if (!event) {
     return (
       <div className="mx-auto max-w-3xl p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <Button
+            type="button"
+            onClick={onBack}
+            variant="link"
+            className="inline-flex items-center rounded-lg border border-secondary/60 bg-white px-3 py-1.5 text-sm font-semibold text-secondary no-underline hover:border-primary hover:text-primary"
+          >
+            ← Back
+          </Button>
+          <ProfileButton onClick={onShowProfile} ariaLabel="Open profile" title="Open profile" />
+        </div>
         <p className="text-red-600">Event not found.</p>
-        <button className="mt-4 rounded-lg border px-4 py-2" onClick={onBack}>Back</button>
       </div>
     );
   }
@@ -28,12 +40,17 @@ export default function EventDetails({ eventId, onBack }) {
   return (
     <div className="bg-surface text-text">
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
-        <button
-          onClick={onBack}
-          className="mb-4 inline-flex items-center rounded-lg border border-secondary/60 bg-white px-3 py-1.5 text-sm font-semibold text-secondary hover:border-primary hover:text-primary"
-        >
-          ← Back
-        </button>
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Button
+            type="button"
+            onClick={onBack}
+            variant="link"
+            className="inline-flex items-center rounded-lg border border-secondary/60 bg-white px-3 py-1.5 text-sm font-semibold text-secondary no-underline hover:border-primary hover:text-primary"
+          >
+            ← Back
+          </Button>
+          <ProfileButton onClick={onShowProfile} ariaLabel="Open profile" title="Open profile" />
+        </div>
 
         <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-white shadow-sm">
           <img src={event.image} alt={event.title} className="h-64 w-full object-cover sm:h-80" />
@@ -50,18 +67,22 @@ export default function EventDetails({ eventId, onBack }) {
             </p>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button
+              <Button
+                type="button"
                 onClick={register}
+                variant="primary"
                 className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-primary sm:w-auto"
               >
                 Register
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
                 onClick={writeReview}
+                variant="outline"
                 className="w-full rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-primary hover:bg-primary hover:text-white sm:w-auto"
               >
                 Write a review
-              </button>
+              </Button>
             </div>
           </div>
         </div>

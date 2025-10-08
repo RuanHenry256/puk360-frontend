@@ -10,7 +10,7 @@ module.exports = {
       colors: {
         // --- Light (default) ---
         primary:   "#70298D", // NWU purple from the logo
-        secondary: "#257D7A", // Teal
+        secondary: "#2596BE", // Teal
         text:      "#000000", // Black
         surface:   "#FFFFFF", // White
         accent:    "#5FC1AE", // Blue-green

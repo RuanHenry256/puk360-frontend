@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import Button from './Button';
+// details screen that pops up when you tap on an event in the event feed (NOT CURRENTLY USED).
+import { useState } from "react";
+import Button from '../components/Button';
 
-export default function ReviewEventDetail() {
+export default function EventDetail() {
   const [rsvp, setRsvp] = useState(false);
   const [review, setReview] = useState("");
   const [rating, setRating] = useState(0);
@@ -38,7 +39,7 @@ export default function ReviewEventDetail() {
     setShowGuidelines(false);
   };
 
-  // Mock user data can use data from the BD
+  // Mock user data
   const user = {
     firstName: "Kamo",
     email: "Kamo@gmail.com"
@@ -60,14 +61,17 @@ export default function ReviewEventDetail() {
               alt="Annual Tech Conference 2023 - Full View" 
               className="max-w-full max-h-full object-contain scale-60"
             />
-            <button
+            <Button
               onClick={closeFullImage}
-              className="absolute top-4 right-4 bg-white rounded-full p-2 hover:bg-gray-200 transition-colors"
+              type="button"
+              variant="link"
+              aria-label="Close full image"
+              className="absolute top-4 right-4 rounded-full bg-white p-2 text-gray-800 transition-colors hover:bg-gray-200 no-underline"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -86,14 +90,17 @@ export default function ReviewEventDetail() {
               {/* Header */}
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-purple-700">Review Guidelines</h3>
-                <button
+                <Button
                   onClick={closeGuidelines}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  type="button"
+                  variant="link"
+                  aria-label="Close guidelines"
+                  className="text-gray-400 transition-colors hover:text-gray-600 no-underline"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                </button>
+                </Button>
               </div>
 
               {/* Animated Circle */}
@@ -265,7 +272,7 @@ export default function ReviewEventDetail() {
             <h3 className="text-2xl sm:text-2xl font-bold text-primary">Will you be attending?</h3>
             <Button
               onClick={handleRSVP}
-              variant={rsvp ? "primary" : "secondary"}
+              variant="primary"
               size="large"
               className={rsvp ? "bg-green-500 hover:bg-green-600" : ""}
             >
@@ -284,39 +291,36 @@ export default function ReviewEventDetail() {
             <h2 className="text-3xl sm:text-4xl font-bold text-primary">Write a Review</h2>
 
             {/* Rating Header */}
-            <div className="flex items-center justify-between mb-4">
-              <p className="font-medium text-purple-700 flex-shrink-0 mr-4">Choose a rating</p>
-              <div className="flex-shrink-0">
-                <Button 
-                  onClick={openGuidelines}
-                  variant="link" 
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium whitespace-nowrap"
-                >
-                  View Guidelines
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Button>
-              </div>
+            <div className="flex justify-between items-center mb-4">
+              <p className="font-medium text-purple-700">Choose a rating</p>
+              <Button 
+                onClick={openGuidelines}
+                variant="link" 
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                View Guidelines
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
             </div>
 
             {/* Star Rating */}
-           <div className="w-full flex justify-start items-center mb-6">
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 mb-6">
               {[1, 2, 3, 4, 5].map((star) => (
-                <button
+                <Button
                   key={star}
+                  type="button"
+                  variant="link"
                   onClick={() => setRating(star)}
-                  className={`text-3xl transition-transform duration-200 hover:scale-110 ${
+                  className={`text-3xl transition-transform duration-200 hover:scale-110 no-underline ${
                     star <= rating ? "text-yellow-500" : "text-gray-300"
                   }`}
                 >
                   ★
-                </button>
+                </Button>
               ))}
             </div>
-          </div>
-
 
             {/* Review Title */}
             <div className="mb-6">

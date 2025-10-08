@@ -1,8 +1,8 @@
 // src/sampleEvents.js
-import BERTS from './posters/BERTS.png';
-import CampusReboot from './posters/CampusReboot.jpg';
-import ClashChoirs from './posters/ClashChoirs.png';
-import Exhibition from './posters/Exhibition.png';
+import BERTS from '../posters/BERTS.png';
+import CampusReboot from '../posters/CampusReboot.jpg';
+import ClashChoirs from '../posters/ClashChoirs.png';
+import Exhibition from '../posters/Exhibition.png';
 
 export const sampleEvents = [
   { id: 1, title: 'NWU Berts Bricks AC Night Race', date: '2025-10-01', category: 'Sports', location: 'Potchefstroom', image: BERTS },
