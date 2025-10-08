@@ -1,5 +1,6 @@
 // src/pages/ReviewEvent.jsx
 import React, { useState } from 'react';
+import Button from '../components/Button';
 import { useParams, useNavigate } from 'react-router-dom';
 
 export default function ReviewEvent() {
@@ -24,7 +25,7 @@ export default function ReviewEvent() {
         </select>
         <textarea className="h-28 rounded-lg border px-3 py-2" placeholder="Your comment"
                   value={comment} onChange={(e)=>setComment(e.target.value)} />
-        <button className="rounded-lg bg-accent px-4 py-2 font-semibold text-white hover:bg-primary">Submit</button>
+        <Button type="submit" variant="primary" className="rounded-lg bg-accent px-4 py-2 font-semibold text-white hover:bg-primary">Submit</Button>
       </form>
     </div>
   );

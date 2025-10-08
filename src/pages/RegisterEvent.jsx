@@ -1,5 +1,6 @@
 // src/pages/RegisterEvent.jsx
 import React from 'react';
+import Button from '../components/Button';
 import { useParams, useNavigate } from 'react-router-dom';
 
 export default function RegisterEvent() {
@@ -18,7 +19,7 @@ export default function RegisterEvent() {
       <form onSubmit={handleSubmit} className="grid gap-3">
         <input className="rounded-lg border px-3 py-2" placeholder="Your name" required />
         <input className="rounded-lg border px-3 py-2" placeholder="Your email" type="email" required />
-        <button className="rounded-lg bg-accent px-4 py-2 font-semibold text-white hover:bg-primary">Confirm</button>
+        <Button type="submit" variant="primary">Confirm</Button>
       </form>
     </div>
   );
