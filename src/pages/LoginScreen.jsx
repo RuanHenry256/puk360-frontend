@@ -4,10 +4,10 @@
  * stores JWT + user in localStorage, and notifies parent on success.
  */
 import React, { useState } from 'react';
-import Button from './components/Button'; // Ensure this path is correct
-import { api } from './api/client';
-import './NWUBackground.css'; // background CSS
-import nwuLogo from './assets/nwu-logo-round-main.png'; // ✅ actual logo
+import Button from '../components/Button'; // Ensure this path is correct
+import { api } from '../api/client';
+import '../styles/NWUBackground.css'; // background CSS
+import nwuLogo from '../assets/nwu-logo-round-main.png'; // ✅ actual logo
 
 const LoginScreen = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -81,10 +81,6 @@ const LoginScreen = ({ onLoginSuccess }) => {
     setSuccess("");
   };
 
-  const handleBecomeHost = () => {
-    alert('Redirecting to host request page...');
-  };
-
   return (
     <div className="min-h-screen relative flex flex-col">
       {/* Background */}
@@ -97,7 +93,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
           {/* Header Section */}
           <div className="flex flex-col items-center mb-10 space-y-5">
             <div className="flex items-center space-x-4">
-              {/* ✅ Real logo (slightly larger) */}
+              {/*  Real logo (slightly larger) */}
               <img
                 src={nwuLogo}
                 alt="NWU logo"
@@ -114,7 +110,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
             </h2>
           </div>
 
-          {/* Card Container — two layers */}
+          {/* Card Container – two layers */}
           <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden">
             {/* BACKDROP LAYER */}
             <div className="
@@ -227,15 +223,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                 </Button>
               </div>
 
-              {/* Host Request */}
-              {isLogin && (
-                <div className="flex flex-col items-center mt-8 pt-6 border-t border-primary/20 dark:border-primary-dm/25 space-y-2">
-                  <p className="text-primary text-center dark:text-primary-dm">Become an event host?</p>
-                  <Button onClick={handleBecomeHost} variant="link">
-                    Request Now
-                  </Button>
-                </div>
-              )}
+              {/* Host request entry moved to Profile screen */}
             </div>
           </div>
         </div>
