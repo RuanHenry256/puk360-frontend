@@ -9,12 +9,40 @@ export default function ReviewEvent() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
 
+  
   const submit = (e) => {
     e.preventDefault();
     alert(`Submitted review for event #${id}: ${rating}⭐ — ${comment}`);
     navigate(`/events/${id}`);
   };
+  /**const submit = async (e) => {
+  e.preventDefault();
+   try {
+    const res = await fetch("http://localhost:5000/review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventId: id,
+        userId: 2, // you can replace with logged-in user ID
+        rating,
+        comment
+      }),
+    });
 
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Review submitted successfully!");
+      navigate(`/events/${id}`);
+    } else {
+      alert(`Error: ${data.error || "Failed to submit review"}`);
+    }
+  } catch (err) {
+    console.error("Error submitting review:", err);
+    alert("Something went wrong.");
+  }
+};**/
+   
   return (
     <div className="mx-auto max-w-md p-6">
       <h2 className="mb-4 text-xl font-bold text-primary">Review Event #{id}</h2>
