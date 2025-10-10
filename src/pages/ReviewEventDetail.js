@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import Button from "../components/Button";
 import TopBar from "../components/TopBar";
 
@@ -15,14 +15,42 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
     alert(!rsvp ? "You're attending this event!" : "You're no longer attending this event");
   };
 
-  const handleSubmit = () => {
+  /**const handleSubmit = () => {
     console.log("Review submitted:", { reviewTitle, review, rating });
     alert("Thanks for your review!");
     setReview("");
     setReviewTitle("");
     setRating(0);
-  };
+  };  <-- Real **/
+  const handleSubmit = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/postreview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        
+        reviewerId : 4, // this and the following two shouldnt be hardcoded
+        userId: 2,  // get this from the logged-in user
+        eventId: 1, // or dynamic event ID if available
+        rating,
+        comment: review,
+        //reviewTitle: reviewTitle
+      }),
+    });
 
+    if (res.ok) {
+      alert("Thanks for your review!");
+      setReview("");
+      setReviewTitle("");
+      setRating(0);
+    } else {
+      alert("Failed to submit review");
+    }
+  } catch (err) {
+    console.error("Error:", err);
+    alert("Something went wrong");
+  }
+};
   const openFullImage = () => setShowFullImage(true);
   const closeFullImage = () => setShowFullImage(false);
   const openGuidelines = () => setShowGuidelines(true);
