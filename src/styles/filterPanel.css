@@ -1,7 +1,7 @@
 .filter-panel {
   row-gap: 0.5rem;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
   transition: padding 0.3s ease, row-gap 0.3s ease;
 }
 
@@ -12,7 +12,9 @@
 }
 
 .filter-panel--closed {
-  row-gap: 0.35rem;
+  row-gap: 0.2rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.35rem;
 }
 
 .filter-panel__content {

@@ -149,7 +149,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
             </div>
 
             <h2 className="text-lg sm:text-xl font-semibold text-secondary text-center">
-              {isLogin ? 'Log in as student' : 'Create student account'}
+              {isLogin ? 'Sign in to PUK360' : 'Create your account'}
             </h2>
           </div>
 
@@ -256,14 +256,28 @@ const LoginScreen = ({ onLoginSuccess }) => {
                   {loading ? (isLogin ? 'Logging in…' : 'Creating…') : (isLogin ? 'Log in' : 'Create account')}
                 </Button>
 
-                <Button 
-                  onClick={handleToggleMode}
-                  variant="outline" 
-                  fullWidth={true}
-                  disabled={loading}
-                >
-                  {isLogin ? 'Create account' : 'Back to login'}
-                </Button>
+                {isLogin ? (
+                  <div className="text-center text-sm text-secondary">
+                    <div>Don’t have an account yet?</div>
+                    <button
+                      type="button"
+                      onClick={handleToggleMode}
+                      className="text-primary font-semibold hover:underline text-[1.05em] mt-1"
+                      disabled={loading}
+                    >
+                      Sign up here
+                    </button>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handleToggleMode}
+                    variant="outline" 
+                    fullWidth={true}
+                    disabled={loading}
+                  >
+                    Back to login
+                  </Button>
+                )}
               </div>
 
               {/* Host request entry moved to Profile screen */}
@@ -276,7 +290,11 @@ const LoginScreen = ({ onLoginSuccess }) => {
         </div>
       </div>
 
-      <div className="flex-shrink-0 h-8"></div>
+      <div className="relative z-10 py-6">
+        <p className="text-center text-primary text-xs sm:text-sm">
+          © {new Date().getFullYear()} NWU. All rights reserved.
+        </p>
+      </div>
     </div>
   );
 };

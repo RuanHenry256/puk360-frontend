@@ -45,18 +45,16 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
           className={"filter-panel flex flex-col rounded-2xl border border-secondary/40 bg-primary/5 shadow-sm px-4 sm:px-6 " + (filtersOpen ? 'filter-panel--open' : 'filter-panel--closed')}
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-secondary">Filters</h2>
-            {!filtersOpen && (
-              <Button
-                type="button"
-                variant="link"
-                onClick={toggleFilters}
-                aria-label="Expand filters"
-                className="text-base font-semibold text-secondary no-underline hover:text-primary"
-              >
-                v
-              </Button>
-            )}
+            <h2 className="text-sm font-semibold text-primary">Filters</h2>
+            <button
+              type="button"
+              onClick={toggleFilters}
+              aria-label={filtersOpen ? 'Collapse filters' : 'Expand filters'}
+              aria-expanded={filtersOpen}
+              className="text-base font-semibold text-primary hover:opacity-90 focus:outline-none"
+            >
+              {filtersOpen ? '▲' : '▼'}
+            </button>
           </div>
 
           <div
@@ -114,19 +112,7 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
               </div>
             </div>
 
-            {filtersOpen && (
-              <div className="mt-4 flex justify-end">
-                <Button
-                  type="button"
-                  variant="link"
-                  onClick={toggleFilters}
-                  aria-label="Collapse filters"
-                  className="text-base font-semibold text-secondary no-underline hover:text-primary"
-                >
-                  ^
-                </Button>
-              </div>
-            )}
+            {/* Toggle button remains in header; no footer control */}
           </div>
         </section>
 

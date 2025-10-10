@@ -13,6 +13,7 @@ import HostMain from './pages/HostMain';
 import EventHostRequest from './pages/EventHostRequest'; // 🟣 Added
 import { api } from './api/client';
 import './styles/App.css';
+import Footer from './components/Footer';
 
 function App() {
   const [view, setView] = useState('login'); // 'login' | 'events' | 'details' | 'profile' | 'hostrequest' | 'host' | 'admin'
@@ -149,6 +150,8 @@ function App() {
       {view === 'admin' && (
         <AdminDashboard />
       )}
+
+      {view !== 'login' && <Footer />}
     </div>
   );
 }
