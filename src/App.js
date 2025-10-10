@@ -8,12 +8,14 @@ import EventListing from './pages/EventListing';
 // import EventDetails from './pages/EventDetails';
 import ReviewEventDetail from './pages/ReviewEventDetail';
 import StudentProfile from './pages/StudentProfile';
+import AdminDashboard from './pages/AdminMainDash';
+import HostMain from './pages/HostMain';
 import EventHostRequest from './pages/EventHostRequest'; // 🟣 Added
 import { api } from './api/client';
 import './styles/App.css';
 
 function App() {
-  const [view, setView] = useState('login'); // 'login' | 'events' | 'details' | 'profile' | 'hostrequest'
+  const [view, setView] = useState('login'); // 'login' | 'events' | 'details' | 'profile' | 'hostrequest' | 'host' | 'admin'
   const [visitedEventIds, setVisitedEventIds] = useState([]);
   const [user, setUser] = useState(() => {
     try {
@@ -26,14 +28,28 @@ function App() {
   });
 
   const handleLoginSuccess = () => {
-    // Reverted: After successful login go to events feed (default flow)
-    setView('events');
+    // Route to the correct workspace based on roles
     try {
       const stored = localStorage.getItem('user');
-      setUser(stored ? JSON.parse(stored) : null);
+      const parsed = stored ? JSON.parse(stored) : null;
+      setUser(parsed);
+
+      const roles = (parsed?.roles || []).map((r) =>
+        typeof r === 'string' ? r.toLowerCase() : r
+      );
+      const has = (name, id) => roles.includes(name) || roles.includes(id);
+
+      if (has('admin', 3)) {
+        setView('admin');
+      } else if (has('host', 2)) {
+        setView('host');
+      } else {
+        setView('events'); // default student
+      }
     } catch (error) {
       console.warn('Failed to parse stored user on login', error);
       setUser(null);
+      setView('events');
     }
   };
 
@@ -124,6 +140,14 @@ function App() {
 
       {view === 'hostrequest' && (
         <EventHostRequest onBack={() => setView('profile')} />
+      )}
+
+      {view === 'host' && (
+        <HostMain />
+      )}
+
+      {view === 'admin' && (
+        <AdminDashboard />
       )}
     </div>
   );

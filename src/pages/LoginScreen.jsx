@@ -109,8 +109,34 @@ const LoginScreen = ({ onLoginSuccess }) => {
       <div className="nwu-background"></div>
 
       {/* Foreground content */}
-      <div className="flex-1 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="w-full max-w-md mx-auto">
+      <div className="flex-1 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="w-full mx-auto max-w-md lg:max-w-6xl">
+          <div className="lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
+            <div className="hidden lg:flex lg:col-span-7 flex-col items-start">
+              <div className="flex items-center space-x-4 mb-6">
+                <img
+                  src={nwuLogo}
+                  alt="NWU logo"
+                  className="w-[72px] h-[72px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
+                />
+                <h1 className="text-5xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  PUK360
+                </h1>
+              </div>
+              <p className="text-lg text-black/70 dark:text-white/70 max-w-xl">
+                Discover campus events, join societies, and stay in the loop.
+                
+              </p>
+              <p className="text-lg text-black/70 dark:text-white/70 max-w-xl">
+                Sign in to personalize your feed and RSVP in one click.
+              </p>
+              <ul className="mt-6 space-y-2 text-black/70 dark:text-white/70">
+                <li>• Tailored event recommendations</li>
+                <li>• Quick RSVP and reminders</li>
+                <li>• Host tools for societies and faculties</li>
+              </ul>
+            </div>
+            <div className="lg:col-span-5 w-full max-w-md mx-auto">
           
           {/* Header Section */}
           <div className="flex flex-col items-center mb-10 space-y-5">
@@ -133,7 +159,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
           </div>
 
           {/* Card Container – two layers */}
-          <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden">
+          <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden shadow-md lg:shadow-xl">
             {/* BACKDROP LAYER */}
             <div className="
               absolute inset-0
@@ -143,7 +169,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
             " />
 
             {/* CONTENT LAYER */}
-            <div className="relative z-10 p-6 sm:p-8">
+            <div className="relative z-10 p-6 sm:p-8 lg:p-10">
               {/* Status messages */}
               {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
               {success && <div className="mb-4 text-green-600 text-sm">{success}</div>}
@@ -296,6 +322,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
               </div>
             </div>
           </div>
+          </div>
+        </div>
         </div>
       </div>
 

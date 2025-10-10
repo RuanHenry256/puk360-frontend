@@ -14,7 +14,7 @@ export default function BottomTabBar({ activeTab, onTabChange, tabs }) {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 h-16 border-t border-secondary/40 bg-primary/5 backdrop-blur">
-      <div className="mx-auto flex h-full max-w-3xl items-center justify-around px-4">
+      <div className="mx-auto flex h-full max-w-6xl items-center justify-around px-4">
         {normalized.map((tab) => (
           <button
             key={tab.id}
@@ -33,4 +33,3 @@ export default function BottomTabBar({ activeTab, onTabChange, tabs }) {
     </div>
   );
 }
-

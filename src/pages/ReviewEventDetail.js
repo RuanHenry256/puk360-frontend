@@ -34,7 +34,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
     <div className="text-text">
       {/* Fixed top bar */}
       <TopBar onBack={onBack} onProfileClick={onShowProfile} backLabel="Back to Events" />
-      <div className="mx-auto max-w-3xl px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
 
         {/* Full Image Modal */}
         {showFullImage && (
@@ -84,9 +84,9 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
         )}
 
         {/* Sections wrapper to enforce spacing between cards */}
-        <div className="flex flex-col gap-6">
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Content card */}
-          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6">
+          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6 lg:col-span-2">
             <div className="flex h-48 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-xl font-bold text-white" onClick={openFullImage}>
               Click to view full image
             </div>
@@ -167,7 +167,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
           </div>
           
           {/* 2) RSVP section */}
-          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6">
+          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6 lg:col-span-1">
             <h3 className="mb-3 text-2xl font-bold text-primary sm:text-2xl">Will you be attending?</h3>
             <Button onClick={handleRSVP} variant="primary" size="large">
               {rsvp ? "Going" : "RSVP to this Event"}
@@ -178,7 +178,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
           </div>
 
           {/* 3) Review section */}
-          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6">
+          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6 lg:col-span-3">
             <div>
               <h2 className="mb-4 text-3xl font-bold text-primary sm:text-4xl">Write a Review</h2>
 

@@ -85,7 +85,7 @@ export default function EventHostRequest({ onBack }) {
       <TopBar onBack={onBack} backLabel="Back to Profile" />
       <HostRequestSummaryModal open={showSummary} onClose={() => setShowSummary(false)} data={summaryData} />
 
-      <div className="mx-auto w-full max-w-4xl flex flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl flex flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
         {/* Heading on gradient (no container surface) */}
         <header className="flex flex-col gap-2 p-2 sm:p-0">
           <div className="flex flex-col gap-2">
@@ -109,6 +109,7 @@ export default function EventHostRequest({ onBack }) {
         {/* Form */}
         <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm">
           <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-medium text-secondary">
               Organisation / Society Name
               <input
@@ -137,7 +138,7 @@ export default function EventHostRequest({ onBack }) {
               </select>
             </label>
 
-            <label className="flex flex-col gap-2 text-sm font-medium text-secondary">
+            <label className="flex flex-col gap-2 text-sm font-medium text-secondary lg:col-span-2">
               Motivation
               <textarea
                 name="motivation"
@@ -148,6 +149,7 @@ export default function EventHostRequest({ onBack }) {
                 className="rounded-lg border border-secondary/60 px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y"
               />
             </label>
+            </div>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-2">
               <small className="text-secondary text-sm">

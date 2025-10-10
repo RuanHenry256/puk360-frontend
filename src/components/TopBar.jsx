@@ -5,7 +5,7 @@ import ProfileButton from './ProfileButton';
 export default function TopBar({ onBack, onProfileClick, backLabel = 'Back' }) {
   return (
     <div className="fixed inset-x-0 top-0 z-40 h-16 border-b border-secondary/40 bg-primary/5 backdrop-blur">
-      <div className="mx-auto flex h-full max-w-3xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {onBack ? (
           <Button
             type="button"
