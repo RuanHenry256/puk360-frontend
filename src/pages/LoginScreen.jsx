@@ -7,11 +7,9 @@ import React, { useState } from 'react';
 // TEMPORARY (for rapid admin UI iteration): Admin dashboard import
 // - Scoped within LoginScreen so removing this button removes all bypass artifacts.
 // - IMPORTANT: Delete this import and related code when done.
-import AdminDashboard from './AdminMainDash';
 // TEMPORARY (for rapid host UI iteration): Host dashboard import
 // - Encapsulated in this file to avoid persistent access paths.
 // - IMPORTANT: Delete this import and related code when done.
-import HostMain from './HostMain';
 import Button from '../components/Button'; // Ensure this path is correct
 import { api } from '../api/client';
 import '../styles/NWUBackground.css'; // background CSS
@@ -23,11 +21,9 @@ const LoginScreen = ({ onLoginSuccess }) => {
   // When true, we render the Admin dashboard directly from LoginScreen,
   // completely bypassing auth for design/testing only.
   // Removing the button and this state fully disables the bypass.
-  const [showAdminBypass, setShowAdminBypass] = useState(false);
   // TEMPORARY state toggled by the !!!HOST button.
   // Mirrors the admin bypass but routes to the host workspace.
   // Removal of this and the related button fully eliminates the bypass.
-  const [showHostBypass, setShowHostBypass] = useState(false);
   const [formData, setFormData] = useState({
     name: '',          // only used for register
     email: '',
@@ -100,8 +96,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
 
   // If a temporary bypass is active, render the destination directly.
   // NOTE: These bypasses are fully encapsulated in this file.
-  if (showAdminBypass) return <AdminDashboard />;
-  if (showHostBypass) return <HostMain />;
+  // Role-based routing now handled by App after successful login.
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -109,8 +104,34 @@ const LoginScreen = ({ onLoginSuccess }) => {
       <div className="nwu-background"></div>
 
       {/* Foreground content */}
-      <div className="flex-1 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="w-full max-w-md mx-auto">
+      <div className="flex-1 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="w-full mx-auto max-w-md lg:max-w-6xl">
+          <div className="lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
+            <div className="hidden lg:flex lg:col-span-7 flex-col items-start">
+              <div className="flex items-center space-x-4 mb-6">
+                <img
+                  src={nwuLogo}
+                  alt="NWU logo"
+                  className="w-[72px] h-[72px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
+                />
+                <h1 className="text-5xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  PUK360
+                </h1>
+              </div>
+              <p className="text-lg text-black/70 dark:text-white/70 max-w-xl">
+                Discover campus events, join societies, and stay in the loop.
+                
+              </p>
+              <p className="text-lg text-black/70 dark:text-white/70 max-w-xl">
+                Sign in to personalize your feed and RSVP in one click.
+              </p>
+              <ul className="mt-6 space-y-2 text-black/70 dark:text-white/70">
+                <li>• Tailored event recommendations</li>
+                <li>• Quick RSVP and reminders</li>
+                <li>• Host tools for societies and faculties</li>
+              </ul>
+            </div>
+            <div className="lg:col-span-5 w-full max-w-md mx-auto">
           
           {/* Header Section */}
           <div className="flex flex-col items-center mb-10 space-y-5">
@@ -133,7 +154,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
           </div>
 
           {/* Card Container – two layers */}
-          <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden">
+          <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden shadow-md lg:shadow-xl">
             {/* BACKDROP LAYER */}
             <div className="
               absolute inset-0
@@ -143,7 +164,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
             " />
 
             {/* CONTENT LAYER */}
-            <div className="relative z-10 p-6 sm:p-8">
+            <div className="relative z-10 p-6 sm:p-8 lg:p-10">
               {/* Status messages */}
               {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
               {success && <div className="mb-4 text-green-600 text-sm">{success}</div>}
@@ -247,55 +268,11 @@ const LoginScreen = ({ onLoginSuccess }) => {
 
               {/* Host request entry moved to Profile screen */}
 
-              {/**
-               * TEMPORARY!!! ADMIN BYPASS BUTTON
-               * --------------------------------------------------------------
-               * - Purpose: Quickly open Admin dashboard without credentials
-               *            to speed up design and testing of admin UI.
-               * - Behavior: Sets a local state flag that replaces this screen
-               *             with the Admin dashboard component.
-               * - Scope: All bypass logic lives only in this file to ensure
-               *          that removing this block removes ALL artifacts.
-               * - Removal: Delete this entire block (import, state, button,
-               *            early return) when done. No other file contains a
-               *            path to the admin view.
-               * --------------------------------------------------------------
-               */}
-              <div className="mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowAdminBypass(true)}
-                  className="w-full rounded-md border border-red-400 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
-                >
-                  !!!ADMIN
-                </button>
-              </div>
-
-              {/**
-               * TEMPORARY!!! HOST BYPASS BUTTON
-               * --------------------------------------------------------------
-               * - Purpose: Quickly open Host workspace without credentials
-               *            to speed up design and testing of host UI.
-               * - Behavior: Sets a local state flag that replaces this screen
-               *             with the HostMain component.
-               * - Scope: All bypass logic lives only in this file to ensure
-               *          that removing this block removes ALL artifacts.
-               * - Removal: Delete this entire block (import, state, button,
-               *            early return) when done. No other file contains a
-               *            path to the host view.
-               * --------------------------------------------------------------
-               */}
-              <div className="mt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowHostBypass(true)}
-                  className="w-full rounded-md border border-blue-400 px-4 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50"
-                >
-                  !!!HOST
-                </button>
-              </div>
+              {/* Dev-only bypass buttons removed now that role-based routing is live. */}
             </div>
           </div>
+          </div>
+        </div>
         </div>
       </div>
 

@@ -103,15 +103,16 @@ const StudentProfile = ({
     formData.name.trim() !== fallbackName || formData.email.trim() !== fallbackEmail;
 
   return (
-    <div className="min-h-screen bg-surface text-text">
+    <div className="min-h-screen text-text">
       <TopBar onBack={onBack} backLabel="Back to Events" />
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-2 rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
+        {/* Heading on gradient (no container surface) */}
+        <header className="flex flex-col gap-2 p-2 sm:p-0">
           <div className="flex flex-col gap-4">
             <div>
-              <p className="text-sm uppercase tracking-wide text-secondary">Profile</p>
-              <h1 className="text-3xl font-bold text-primary sm:text-4xl">Hello, {fallbackName}</h1>
-              <p className="text-sm text-secondary">Manage your details and activity.</p>
+              <p className="text-sm uppercase tracking-wide text-white/70">Profile</p>
+              <h1 className="text-3xl font-bold text-white sm:text-4xl">Hello, {fallbackName}</h1>
+              <p className="text-sm text-white/80">Manage your details and activity.</p>
             </div>
           </div>
           {(statusMessage || errorMessage) && (
@@ -121,7 +122,8 @@ const StudentProfile = ({
           )}
         </header>
 
-        <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm">
+        <div className="grid gap-6 lg:grid-cols-2">
+        <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm lg:col-span-1">
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-semibold text-primary">Your details</h2>
@@ -179,7 +181,7 @@ const StudentProfile = ({
           </div>
         </section>
 
-        <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm">
+        <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm lg:col-span-1">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-primary">Visited events</h2>
             <span className="text-sm text-secondary">{visitedEvents.length} total</span>
@@ -190,7 +192,7 @@ const StudentProfile = ({
               You have not visited any events yet. Register for events to start tracking them here.
             </p>
           ) : (
-            <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+            <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {visitedEvents.map((event) => (
                 <li
                   key={event.id}
@@ -208,8 +210,8 @@ const StudentProfile = ({
           )}
         </section>
 
-        {/* Host request entry (moved below visited events) */}
-        <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm">
+        {/* Host request entry */}
+        <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm lg:col-span-1">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-primary">Become an Event Host</h2>
@@ -222,6 +224,7 @@ const StudentProfile = ({
             </Button>
           </div>
         </section>
+        </div>
 
         <section className="rounded-2xl border border-secondary/30 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

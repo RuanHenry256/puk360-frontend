@@ -15,6 +15,14 @@
   --pan-x: calc(var(--tile-w) * 20);                 /* move by whole tiles */
 }
 
+/* Slightly larger background tiles on desktop for a calmer feel */
+@media (min-width: 1024px){
+  :root{ --tile-w: 120px; }
+}
+@media (min-width: 1536px){
+  :root{ --tile-w: 140px; }
+}
+
 .nwu-background{
   position: fixed;
   inset: 0;

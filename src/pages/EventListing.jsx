@@ -29,13 +29,13 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
   const toggleFilters = () => setFiltersOpen((prev) => !prev);
 
   return (
-    <div className="event-listing bg-surface text-text">
+    <div className="event-listing text-text">
       <TopBar onProfileClick={onShowProfile} />
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
         <header className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-3xl font-bold text-primary sm:text-4xl">Event Listings</h1>
-          <p className="text-sm text-secondary sm:text-base">Discover what's happening across campuses.</p>
-          <span className="text-sm font-medium text-secondary">
+          <h1 className="text-3xl font-bold text-white sm:text-4xl">Event Listings</h1>
+          <p className="text-sm text-white/80 sm:text-base">Discover what's happening across campuses.</p>
+          <span className="text-sm font-medium text-white/70">
             {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
           </span>
         </header>
@@ -131,7 +131,7 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
         </section>
 
         {/* Cards as buttons */}
-        <ul className="grid gap-4 sm:gap-6">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
           {filteredEvents.map((event) => (
             <li
               key={event.id}

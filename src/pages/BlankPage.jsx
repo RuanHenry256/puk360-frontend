@@ -7,7 +7,7 @@ import Button from '../components/Button';
 
 export default function BlankPage({ onBack }) {
   return (
-    <div className="min-h-screen bg-surface text-text">
+    <div className="min-h-screen text-text">
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
         <Button
           type="button"
@@ -19,7 +19,7 @@ export default function BlankPage({ onBack }) {
         </Button>
 
         <div className="rounded-2xl border border-secondary/40 bg-white/90 p-8 shadow-sm">
-          <h1 className="text-3xl font-bold text-primary mb-4">Blank Page</h1>
+          <h1 className="text-3xl font-bold text-white mb-4">Blank Page</h1>
           <p className="text-secondary">
             This is a blank page used for testing and developing new components in the app. 
             When features are being built or tested, they can be temporarily placed here before 
