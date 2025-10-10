@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BottomTabBar from '../components/BottomTabBar';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { api } from '../api/client'; // Adjusted import path
 
 function TopBar({ title }) {
   return (
@@ -66,41 +68,29 @@ function OverviewPage() {
   );
 }
 
-function EventsPage() {
-  return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-primary">Manage Events</h2>
-          <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90">
-            + New Event
-          </button>
-        </div>
-        
-        <div className="space-y-4">
-          {['Music Night Extravaganza', 'Tech Conference 2024', 'Art Exhibition'].map((event, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg border border-secondary/40 bg-white p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-white">
-                  EV
-                </div>
-                <div>
-                  <p className="font-semibold text-text">{event}</p>
-                  <p className="text-sm text-secondary">October 23, 2024</p>
-                </div>
-              </div>
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm font-medium text-secondary hover:border-primary hover:text-primary">
-                Edit
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function UsersPage() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await api.getUsers(); // Fetch users using the API client
+        setUsers(data); // Assuming the API returns an array of users
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (loading) return <p>Loading users...</p>;
+  if (error) return <p>Error fetching users: {error}</p>;
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
@@ -115,23 +105,19 @@ function UsersPage() {
         </div>
 
         <div className="space-y-3">
-          {[
-            { name: 'Kamo', email: 'kamo@example.com', role: 'Student' },
-            { name: 'Sarah Johnson', email: 'sarah@example.com', role: 'Admin' },
-            { name: 'Mike Chen', email: 'mike@example.com', role: 'Student' }
-          ].map((user, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg border border-secondary/40 bg-white p-4">
+          {users.map((user) => (
+            <div key={user.User_ID} className="flex items-center justify-between rounded-lg border border-secondary/40 bg-white p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                  {user.name.charAt(0)}
+                  {user.Name.charAt(0)} {/* Display initial of user's name */}
                 </div>
                 <div>
-                  <p className="font-semibold text-text">{user.name}</p>
-                  <p className="text-sm text-secondary">{user.email}</p>
+                  <p className="font-semibold text-text">{user.Name}</p>
+                  <p className="text-sm text-secondary">{user.Email}</p>
                 </div>
               </div>
               <span className="rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
-                {user.role}
+                {user.role} {/* Display user's role */}
               </span>
             </div>
           ))}
@@ -143,13 +129,12 @@ function UsersPage() {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const navigate = useNavigate(); // Initialize the useNavigate hook
 
   const renderPage = () => {
     switch (activeTab) {
       case 'overview':
         return <OverviewPage />;
-      case 'events':
-        return <EventsPage />;
       case 'users':
         return <UsersPage />;
       default:
@@ -161,8 +146,6 @@ export default function AdminDashboard() {
     switch (activeTab) {
       case 'overview':
         return 'Admin Dashboard';
-      case 'events':
-        return 'Events Management';
       case 'users':
         return 'User Management';
       default:
@@ -182,4 +165,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

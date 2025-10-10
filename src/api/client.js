@@ -2,9 +2,10 @@
  * Minimal API client for the frontend.
  * Wraps fetch with JSON handling and exposes common API calls.
  */
+
 const RAW_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
-// ensure no trailing slash
+// Ensure no trailing slash
 const API_BASE = RAW_BASE.replace(/\/+$/, "");
 
 async function http(path, { method = "GET", body, token } = {}) {
@@ -28,19 +29,30 @@ async function http(path, { method = "GET", body, token } = {}) {
 }
 
 export const api = {
-  login: (email, password) => http("/api/auth/login", { method: "POST", body: { email, password } }),
-  register: (name, email, password) => http("/api/auth/register", { method: "POST", body: { name, email, password } }),
-  updateProfile: (updates, token) => http("/api/users/me", { method: "PATCH", body: updates, token }),
-  // generic helpers
-  post: (path, body, token) => http(path, { method: "POST", body, token }),
-  // host applications
+  login: (email, password) => 
+    http("/api/auth/login", { method: "POST", body: { email, password } }),
+  
+  register: (name, email, password) => 
+    http("/api/auth/register", { method: "POST", body: { name, email, password } }),
+  
+  updateProfile: (updates, token) => 
+    http("/api/users/me", { method: "PATCH", body: updates, token }),
+  
+  // New function to fetch users
+  getUsers: () => 
+    http("/api/users", { method: "GET" }),
+
+  // Generic helpers
+  post: (path, body, token) => 
+    http(path, { method: "POST", body, token }),
+
+  // Host applications
   createHostApplication: (
     { org_name, event_category, proposed_event_title, proposed_event_summary, proposed_date, motivation },
     token
   ) =>
     http("/api/host-applications", {
       method: "POST",
-      // include event_category explicitly so backend doesn't try to derive from summary
       body: { org_name, event_category, proposed_event_title, proposed_event_summary, proposed_date, motivation },
       token,
     }),
