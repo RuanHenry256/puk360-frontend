@@ -103,15 +103,16 @@ const StudentProfile = ({
     formData.name.trim() !== fallbackName || formData.email.trim() !== fallbackEmail;
 
   return (
-    <div className="min-h-screen bg-surface text-text">
+    <div className="min-h-screen text-text">
       <TopBar onBack={onBack} backLabel="Back to Events" />
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-2 rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
+        {/* Heading on gradient (no container surface) */}
+        <header className="flex flex-col gap-2 p-2 sm:p-0">
           <div className="flex flex-col gap-4">
             <div>
-              <p className="text-sm uppercase tracking-wide text-secondary">Profile</p>
-              <h1 className="text-3xl font-bold text-primary sm:text-4xl">Hello, {fallbackName}</h1>
-              <p className="text-sm text-secondary">Manage your details and activity.</p>
+              <p className="text-sm uppercase tracking-wide text-white/70">Profile</p>
+              <h1 className="text-3xl font-bold text-white sm:text-4xl">Hello, {fallbackName}</h1>
+              <p className="text-sm text-white/80">Manage your details and activity.</p>
             </div>
           </div>
           {(statusMessage || errorMessage) && (

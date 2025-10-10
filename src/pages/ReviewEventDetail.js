@@ -31,7 +31,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
   const user = { firstName: "Kamo", email: "Kamo@gmail.com" };
 
   return (
-    <div className="bg-surface text-text">
+    <div className="text-text">
       {/* Fixed top bar */}
       <TopBar onBack={onBack} onProfileClick={onShowProfile} backLabel="Back to Events" />
       <div className="mx-auto max-w-3xl px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">

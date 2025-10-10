@@ -81,20 +81,20 @@ export default function EventHostRequest({ onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-text">
+    <div className="min-h-screen text-text">
       <TopBar onBack={onBack} backLabel="Back to Profile" />
       <HostRequestSummaryModal open={showSummary} onClose={() => setShowSummary(false)} data={summaryData} />
 
       <div className="mx-auto w-full max-w-4xl flex flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="flex flex-col gap-2 rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
+        {/* Heading on gradient (no container surface) */}
+        <header className="flex flex-col gap-2 p-2 sm:p-0">
           <div className="flex flex-col gap-2">
             <div>
-              <p className="text-sm uppercase tracking-wide text-secondary">Host Application</p>
-              <h1 className="text-3xl font-bold text-primary sm:text-4xl">Request Event Host Access</h1>
-              <p className="text-sm text-secondary">
+              <p className="text-sm uppercase tracking-wide text-white/70">Host Application</p>
+              <h1 className="text-3xl font-bold text-white sm:text-4xl">Request Event Host Access</h1>
+              <p className="text-sm text-white/80">
                 {isAuthed ? (
-                  <>Signed in as <span className="font-semibold">{storedUser?.Name || storedUser?.name || storedUser?.Email || storedUser?.email || "Student"}</span></>
+                  <>Signed in as <span className="font-semibold text-white">{storedUser?.Name || storedUser?.name || storedUser?.Email || storedUser?.email || "Student"}</span></>
                 ) : (
                   <span className="text-red-600">Your session has expired. Please sign in again.</span>
                 )}

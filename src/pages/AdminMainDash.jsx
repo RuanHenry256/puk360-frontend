@@ -171,7 +171,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-text">
+    <div className="min-h-screen text-text">
       <TopBar title={getTitle()} />
       
       <div className="mx-auto max-w-3xl px-4 pt-20 pb-20 sm:px-6 lg:px-8">
@@ -182,4 +182,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

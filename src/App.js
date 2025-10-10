@@ -94,7 +94,7 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div className={"App " + (view !== 'login' ? 'App--with-gradient' : '')}>
       {view === 'login' && (
         <LoginScreen onLoginSuccess={handleLoginSuccess} />
       )}

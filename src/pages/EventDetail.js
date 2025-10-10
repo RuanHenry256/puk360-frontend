@@ -46,7 +46,7 @@ export default function EventDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <div className="flex-1 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8"></div>
           
       {/* Full Image Modal */}

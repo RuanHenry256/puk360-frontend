@@ -38,7 +38,7 @@ export default function EventDetails({ eventId, onBack, onShowProfile }) {
   };
 
   return (
-    <div className="bg-surface text-text">
+    <div className="text-text">
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <Button
