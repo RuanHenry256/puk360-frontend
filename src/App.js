@@ -18,6 +18,7 @@ import Footer from './components/Footer';
 function App() {
   const [view, setView] = useState('login'); // 'login' | 'events' | 'details' | 'profile' | 'hostrequest' | 'host' | 'admin'
   const [visitedEventIds, setVisitedEventIds] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState(null);
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem('user');
@@ -60,6 +61,7 @@ function App() {
 
   const handleSelectEvent = (id) => {
     setView('details');
+    setSelectedEventId(id);
     setVisitedEventIds((previous) =>
       previous.includes(id) ? previous : [...previous, id]
     );
@@ -125,7 +127,7 @@ function App() {
 
 
       {view === 'details' && (
-        <ReviewEventDetail onBack={handleBackFromDetails} onShowProfile={handleShowProfile} />
+        <ReviewEventDetail eventId={selectedEventId} onBack={handleBackFromDetails} onShowProfile={handleShowProfile} />
       )}
 
       {view === 'profile' && (
@@ -144,11 +146,11 @@ function App() {
       )}
 
       {view === 'host' && (
-        <HostMain />
+        <HostMain onSignOut={handleSignOut} />
       )}
 
       {view === 'admin' && (
-        <AdminDashboard />
+        <AdminDashboard onSignOut={handleSignOut} />
       )}
 
       {view !== 'login' && <Footer />}

@@ -1,37 +1,155 @@
 // src/EventListing.jsx
 import React, { useEffect, useState } from 'react';
-import { sampleEvents, formatEventDate } from './sampleEvents';
+import { api } from '../api/client';
 import Button from '../components/Button';
 import TopBar from '../components/TopBar';
 import '../styles/filterPanel.css';
 
-export default function EventListing({ onSelectEvent, onShowProfile }) {
-  const [filteredEvents, setFilteredEvents] = useState(sampleEvents);
-  const [filters, setFilters] = useState({ date: '', category: '', location: '' });
+// Local date formatter (keeps previous display format)
+const formatEventDate = (dateString) =>
+  new Date(`${dateString}T00:00:00`).toLocaleDateString('en-ZA', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+export default function EventListing({ onSelectEvent, onShowProfile, showTopBar = true }) {
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [filters, setFilters] = useState({ week: '', category: '', campus: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Load events from API on mount
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        setLoading(true);
+        const raw = await api.events.list();
+        const normalized = raw.map((e) => ({
+          id: e.Event_ID,
+          title: e.Title,
+          date: typeof e.Date === 'string' ? e.Date.slice(0, 10) : new Date(e.Date).toISOString().slice(0, 10),
+          category: e.category || 'General',
+          location: e.venue || e.campus || '',
+          campus: e.campus || '',
+          // Use image only if non-empty and looks like a URL; else null for white placeholder
+          image: (typeof e.ImageUrl === 'string' && e.ImageUrl.trim() && /^(https?:)?\/\//i.test(e.ImageUrl.trim())) ? e.ImageUrl.trim() : null,
+        }));
+        if (!cancelled) {
+          setEvents(normalized);
+          setFilteredEvents(normalized);
+          setError('');
+          setLoading(false);
+        }
+      } catch (err) {
+        console.warn('Failed to load events', err);
+        if (!cancelled) {
+          setEvents([]);
+          setFilteredEvents([]);
+          setError('Failed to load events');
+          setLoading(false);
+        }
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Build dynamic filter options from loaded events
+  const [weeks, setWeeks] = useState([]); // [{ value: 'YYYY-MM-DD_YYYY-MM-DD', label: '12 Oct – 18 Oct' }]
+  const [categories, setCategories] = useState([]);
+  const [campuses, setCampuses] = useState([]);
+
+  // Known options to ensure filters are comprehensive even if DB data is uniform
+  const KNOWN_CAMPUSES = ['Potchefstroom', 'Mahikeng', 'Vaal'];
+  const KNOWN_CATEGORIES = ['Entertainment', 'Community', 'Music', 'Sports', 'Art', 'Academic'];
 
   useEffect(() => {
-    let list = sampleEvents;
-    if (filters.date) list = list.filter(e => e.date === filters.date);
-    if (filters.category) list = list.filter(e => e.category === filters.category);
-    if (filters.location) list = list.filter(e => e.location === filters.location);
+    const catsLive = Array.from(new Set(events.map(e => (e.category || '').trim()).filter(Boolean)));
+    const cats = Array.from(new Set([...KNOWN_CATEGORIES, ...catsLive])).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+    setCategories(cats);
+
+    const campsLive = Array.from(new Set(events.map(e => (e.campus || '').trim()).filter(Boolean)));
+    const camps = Array.from(new Set([...KNOWN_CAMPUSES, ...campsLive])).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+    setCampuses(camps);
+
+    if (events.length) {
+      const dates = events.map(e => new Date(e.date + 'T00:00:00'));
+      const min = new Date(Math.min.apply(null, dates));
+      const max = new Date(Math.max.apply(null, dates));
+      const start = startOfWeek(min); // Monday as start
+      const end = endOfWeek(max);     // Sunday as end
+      const out = [];
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 7)) {
+        const ws = new Date(d);
+        const we = endOfWeek(ws);
+        const val = `${fmtISO(ws)}_${fmtISO(we)}`;
+        const label = `${fmtLabel(ws)} – ${fmtLabel(we)}`;
+        out.push({ value: val, label });
+      }
+      setWeeks(out);
+    } else {
+      setWeeks([]);
+    }
+  }, [events]);
+
+  // Recompute filtered list when inputs change
+  useEffect(() => {
+    let list = events;
+    if (filters.week) {
+      const [ws, we] = filters.week.split('_');
+      const from = new Date(ws + 'T00:00:00');
+      const to = new Date(we + 'T23:59:59');
+      list = list.filter(e => {
+        const d = new Date(e.date + 'T00:00:00');
+        return d >= from && d <= to;
+      });
+    }
+    if (filters.category) list = list.filter(e => (e.category || '').toLowerCase() === filters.category.toLowerCase());
+    if (filters.campus) list = list.filter(e => (e.campus || '').toLowerCase() === filters.campus.toLowerCase());
     if (searchTerm) list = list.filter(e => e.title.toLowerCase().includes(searchTerm.toLowerCase()));
     setFilteredEvents(list);
-  }, [filters, searchTerm]);
+  }, [events, filters, searchTerm]);
+
+  // Helpers
+  function startOfWeek(d) {
+    const date = new Date(d);
+    const day = (date.getDay() + 6) % 7; // convert Sun(0)..Sat(6) -> Mon(0)..Sun(6)
+    date.setDate(date.getDate() - day);
+    date.setHours(0,0,0,0);
+    return date;
+  }
+  function endOfWeek(d) {
+    const s = startOfWeek(d);
+    const e = new Date(s);
+    e.setDate(e.getDate() + 6);
+    e.setHours(23,59,59,999);
+    return e;
+  }
+  function fmtISO(d) { return d.toISOString().slice(0,10); }
+  function fmtLabel(d) { return d.toLocaleDateString('en-ZA', { day:'2-digit', month:'short' }); }
 
   const handleFilterChange = (e) => setFilters((p) => ({ ...p, [e.target.name]: e.target.value }));
   const toggleFilters = () => setFiltersOpen((prev) => !prev);
+  const clearFilters = () => {
+    setFilters({ week: '', category: '', campus: '' });
+    setSearchTerm('');
+  };
 
   return (
     <div className="event-listing text-text">
-      <TopBar onProfileClick={onShowProfile} />
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
+      {showTopBar && <TopBar onProfileClick={onShowProfile} />}
+      <div className={`mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 ${showTopBar ? 'pt-[88px]' : 'pt-6'} pb-6 sm:px-6 lg:px-8`}>
         <header className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-3xl font-bold text-white sm:text-4xl">Event Listings</h1>
           <p className="text-sm text-white/80 sm:text-base">Discover what's happening across campuses.</p>
@@ -76,14 +194,13 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-secondary" htmlFor="filter-date">Date</label>
-                  <select id="filter-date" name="date" value={filters.date} onChange={handleFilterChange}
+                  <label className="text-sm font-semibold text-secondary" htmlFor="filter-week">Date range (week)</label>
+                  <select id="filter-week" name="week" value={filters.week} onChange={handleFilterChange}
                           className="w-full rounded-lg border border-secondary/60 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50">
-                    <option value="">Any date</option>
-                    <option value="2025-10-01">October 1, 2025</option>
-                    <option value="2025-10-02">October 2, 2025</option>
-                    <option value="2025-07-25">July 25, 2025</option>
-                    <option value="2024-10-23">October 23, 2024</option>
+                    <option value="">Any week</option>
+                    {weeks.map(w => (
+                      <option key={w.value} value={w.value}>{w.label}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -92,23 +209,33 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
                   <select id="filter-category" name="category" value={filters.category} onChange={handleFilterChange}
                           className="w-full rounded-lg border border-secondary/60 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50">
                     <option value="">Any category</option>
-                    <option value="Sports">Sports</option>
-                    <option value="Music">Music</option>
-                    <option value="Art">Art</option>
-                    <option value="Community">Community</option>
+                    {categories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-secondary" htmlFor="filter-location">Location</label>
-                  <select id="filter-location" name="location" value={filters.location} onChange={handleFilterChange}
+                  <label className="text-sm font-semibold text-secondary" htmlFor="filter-campus">Campus</label>
+                  <select id="filter-campus" name="campus" value={filters.campus} onChange={handleFilterChange}
                           className="w-full rounded-lg border border-secondary/60 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50">
-                    <option value="">Any location</option>
-                    <option value="Potchefstroom">Potchefstroom</option>
-                    <option value="Mahikeng">Mahikeng</option>
-                    <option value="Vanderbilpark">Vanderbilpark</option>
+                    <option value="">Any campus</option>
+                    {campuses.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Clear filters */}
+              <div className="mt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm font-medium text-secondary transition-colors hover:border-primary hover:text-primary"
+                >
+                  Clear all filters
+                </button>
               </div>
             </div>
 
@@ -116,33 +243,45 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
           </div>
         </section>
 
-        {/* Cards as buttons */}
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
-          {filteredEvents.map((event) => (
-            <li
-              key={event.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => onSelectEvent(event.id)}
-              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelectEvent(event.id)}
-              className="flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
-              aria-label={`View details for ${event.title}`}
-            >
-              <img src={event.image} alt={event.title} className="h-48 w-full object-cover sm:h-64" />
-              <div className="flex flex-col gap-3 px-4 py-5 text-left sm:px-6">
-                <h2 className="text-xl font-semibold text-primary sm:text-2xl">{event.title}</h2>
-                <div className="flex flex-col gap-1 text-sm text-secondary sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
-                  <span className="font-medium text-primary">{event.category}</span>
-                  <span>{formatEventDate(event.date)}</span>
-                  <span>{event.location}</span>
+        {/* Cards / Loading / Error */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12 text-secondary">Loading events…</div>
+        ) : error ? (
+          <div className="flex items-center justify-center py-12 text-red-600">{error}</div>
+        ) : (
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
+            {filteredEvents.map((event) => (
+              <li
+                key={event.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectEvent(event.id)}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelectEvent(event.id)}
+                className="flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
+                aria-label={`View details for ${event.title}`}
+              >
+                {event.image ? (
+                  <img src={event.image} alt={`${event.title} image`} className="h-48 w-full object-cover sm:h-64" />
+                ) : (
+                  <div className="flex h-48 w-full items-center justify-center bg-white text-secondary sm:h-64">
+                    {`${event.title} image`}
+                  </div>
+                )}
+                <div className="flex flex-col gap-3 px-4 py-5 text-left sm:px-6">
+                  <h2 className="text-xl font-semibold text-primary sm:text-2xl">{event.title}</h2>
+                  <div className="flex flex-col gap-1 text-sm text-secondary sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+                    <span className="font-medium text-primary">{event.category}</span>
+                    <span>{formatEventDate(event.date)}</span>
+                    <span>{event.location}</span>
+                  </div>
+                  <span className="mt-1 inline-flex w-fit rounded-full bg-secondary/10 px-3 py-1 text-xs font-semibold text-secondary">
+                    Tap to view details
+                  </span>
                 </div>
-                <span className="mt-1 inline-flex w-fit rounded-full bg-secondary/10 px-3 py-1 text-xs font-semibold text-secondary">
-                  Tap to view details
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* Back to Top */}
         <Button

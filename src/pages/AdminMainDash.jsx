@@ -1,15 +1,6 @@
-import React, { useState } from 'react';
-import BottomTabBar from '../components/BottomTabBar';
-
-function TopBar({ title }) {
-  return (
-    <div className="fixed inset-x-0 top-0 z-40 h-16 border-b border-secondary/40 bg-primary/5 backdrop-blur">
-      <div className="mx-auto flex h-full max-w-3xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <h1 className="text-xl font-bold text-primary">{title}</h1>
-      </div>
-    </div>
-  );
-}
+import React, { useEffect, useState } from 'react';
+import Sidebar from '../components/Sidebar';
+import { api } from '../api/client';
 
 function OverviewPage() {
   return (
@@ -141,8 +132,128 @@ function UsersPage() {
   );
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ onSignOut }) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [apps, setApps] = useState([]);
+  const [appsLoading, setAppsLoading] = useState(false);
+  const [appsError, setAppsError] = useState('');
+  const [selectedApp, setSelectedApp] = useState(null);
+
+  async function loadApps(status = 'Pending') {
+    try {
+      setAppsLoading(true); setAppsError('');
+      const token = localStorage.getItem('token');
+      const list = await api.admin.listHostApplications(status, token);
+      setApps(list);
+    } catch (e) {
+      setAppsError(e.message || 'Failed to load applications');
+    } finally { setAppsLoading(false); }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'hostapps') loadApps('Pending');
+  }, [activeTab]);
+
+  async function review(id, decision, comment) {
+    try {
+      const token = localStorage.getItem('token');
+      await api.admin.reviewHostApplication(id, { decision, comment }, token);
+      setApps((prev) => prev.filter((a) => a.Application_ID !== id));
+      setSelectedApp(null);
+    } catch (e) { alert(e.message || 'Failed to update'); }
+  }
+
+  function HostAppsPage() {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-primary">Host Applications</h2>
+            <div className="flex gap-2">
+              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={()=>loadApps('Pending')}>Pending</button>
+              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={()=>loadApps('Approved')}>Approved</button>
+              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={()=>loadApps('Rejected')}>Rejected</button>
+              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={()=>loadApps('All')}>All</button>
+            </div>
+          </div>
+          {appsLoading && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-secondary">Loading…</div>}
+          {appsError && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-red-600">{appsError}</div>}
+          {!appsLoading && !appsError && (
+            <div>
+              {apps.length === 0 ? (
+                <div className="rounded-lg border border-secondary/40 bg-white p-4 text-secondary">No applications</div>
+              ) : (
+                <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {apps.map((a) => (
+                    <li key={a.Application_ID}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedApp(a)}
+                        className="w-full rounded-2xl border border-secondary/40 bg-white p-4 text-left shadow-sm transition hover:shadow-md"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="font-semibold text-primary">{a.Org_Name} • {a.Event_Type}</h3>
+                            <p className="text-sm text-secondary">Applicant: {a.Applicant_Name} ({a.Applicant_Email})</p>
+                          </div>
+                          <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-xs text-secondary">{a.Status}</span>
+                        </div>
+                        <p className="mt-2 line-clamp-2 text-sm text-secondary">{a.Motivation || 'No motivation provided.'}</p>
+                        <p className="mt-2 text-xs text-secondary">Tap to review</p>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  function HostAppDetailModal({ app, onClose }) {
+    const [comment, setComment] = useState('');
+    if (!app) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/30 p-4" onClick={onClose}>
+        <div className="w-full max-w-2xl rounded-2xl border border-secondary/40 bg-white p-6 shadow-xl" onClick={(e)=>e.stopPropagation()}>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-2xl font-bold text-primary">Review Application</h3>
+            <button className="rounded px-3 py-1 text-secondary hover:bg-secondary/10" onClick={onClose}>✕</button>
+          </div>
+          <div className="grid gap-3">
+            <div className="rounded-lg bg-primary/5 p-3">
+              <p className="text-sm text-secondary">Organisation • Category</p>
+              <p className="font-semibold text-primary">{app.Org_Name} • {app.Event_Type}</p>
+            </div>
+            <div className="rounded-lg bg-primary/5 p-3">
+              <p className="text-sm text-secondary">Applicant</p>
+              <p className="font-medium text-text">{app.Applicant_Name} ({app.Applicant_Email})</p>
+            </div>
+            <div className="rounded-lg bg-primary/5 p-3">
+              <p className="text-sm text-secondary">Motivation</p>
+              <p className="text-text">{app.Motivation || 'No motivation provided.'}</p>
+            </div>
+            <div className="rounded-lg bg-primary/5 p-3">
+              <label className="text-sm font-medium text-secondary">Reviewer comment (sent to applicant later)</label>
+              <textarea className="mt-1 h-28 w-full rounded border p-2" value={comment} onChange={(e)=>setComment(e.target.value)} />
+            </div>
+          </div>
+          <div className="mt-4 flex justify-end gap-2">
+            <button className="rounded-lg border border-secondary/60 px-4 py-2 text-sm text-secondary hover:border-primary hover:text-primary" onClick={onClose}>Cancel</button>
+            {app.Status === 'Pending' && (
+              <>
+                <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90" onClick={()=>review(app.Application_ID, 'APPROVED', comment)}>Approve</button>
+                <button className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50" onClick={()=>review(app.Application_ID, 'REJECTED', comment)}>Reject</button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderPage = () => {
     switch (activeTab) {
@@ -150,6 +261,8 @@ export default function AdminDashboard() {
         return <OverviewPage />;
       case 'events':
         return <EventsPage />;
+      case 'hostapps':
+        return <HostAppsPage />;
       case 'users':
         return <UsersPage />;
       default:
@@ -165,6 +278,8 @@ export default function AdminDashboard() {
         return 'Events Management';
       case 'users':
         return 'User Management';
+      case 'hostapps':
+        return 'Host Applications';
       default:
         return 'Admin Dashboard';
     }
@@ -172,13 +287,35 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen text-text">
-      <TopBar title={getTitle()} />
+      <div className="fixed inset-x-0 top-0 z-40 h-16 border-b border-secondary/40 bg-primary/5 backdrop-blur">
+        <div className="flex h-full items-center justify-start px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <button type="button" className="rounded p-2 text-primary hover:bg-primary/10 lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu">☰</button>
+            <h1 className="text-xl font-bold text-primary lg:text-left">{getTitle()}</h1>
+          </div>
+        </div>
+      </div>
       
-      <div className="mx-auto max-w-3xl px-4 pt-20 pb-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pt-20 pb-20 sm:px-6 lg:px-8 lg:pl-64">
         {renderPage()}
       </div>
+      {activeTab === 'hostapps' && selectedApp && (
+        <HostAppDetailModal app={selectedApp} onClose={() => setSelectedApp(null)} />
+      )}
 
-      <BottomTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Sidebar
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        activeId={activeTab}
+        onSelect={setActiveTab}
+        items={[
+          { id: 'overview', label: 'Overview', icon: '🏠' },
+          { id: 'events', label: 'Events', icon: '📅' },
+          { id: 'hostapps', label: 'Host Applications', icon: '📝' },
+          { id: 'users', label: 'Users', icon: '👤' },
+        ]}
+        onSignOut={onSignOut}
+      />
     </div>
   );
 }

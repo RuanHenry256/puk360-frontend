@@ -1,14 +1,47 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "../components/Button";
 import TopBar from "../components/TopBar";
+import { api } from "../api/client";
 
-export default function ReviewEventDetail({ onBack, onShowProfile }) {
+export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [rsvp, setRsvp] = useState(false);
   const [review, setReview] = useState("");
   const [rating, setRating] = useState(0);
   const [reviewTitle, setReviewTitle] = useState("");
   const [showFullImage, setShowFullImage] = useState(false);
   const [showGuidelines, setShowGuidelines] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (!eventId) {
+        setError("No event selected");
+        setLoading(false);
+        return;
+      }
+      try {
+        const data = await api.events.get(eventId);
+        if (!cancelled) {
+          setEvent(data);
+          setLoading(false);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e.message || "Failed to load event");
+          setLoading(false);
+        }
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  const formatDate = (dateString) =>
+    dateString ? new Date(`${dateString}T00:00:00`).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+  const formatTime = (t) => (typeof t === 'string' ? t.slice(0,5) : '');
 
   const handleRSVP = () => {
     setRsvp((prev) => !prev);
@@ -28,10 +61,9 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        
-        reviewerId : 4, // this and the following two shouldnt be hardcoded
-        userId: 2,  // get this from the logged-in user
-        eventId: 1, // or dynamic event ID if available
+        reviewerId : 4, // TODO: use logged-in user
+        userId: 2,      // TODO: use logged-in user
+        eventId: event?.Event_ID,
         rating,
         comment: review,
         //reviewTitle: reviewTitle
@@ -58,6 +90,28 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
 
   const user = { firstName: "Kamo", email: "Kamo@gmail.com" };
 
+  if (loading) {
+    return (
+      <div className="text-text">
+        <TopBar onBack={onBack} onProfileClick={onShowProfile} backLabel="Back to Events" />
+        <div className="mx-auto max-w-6xl px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
+          <p className="text-secondary">Loading event…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="text-text">
+        <TopBar onBack={onBack} onProfileClick={onShowProfile} backLabel="Back to Events" />
+        <div className="mx-auto max-w-6xl px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
+          <p className="text-red-600">{error || 'Event not found.'}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="text-text">
       {/* Fixed top bar */}
@@ -68,9 +122,13 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
         {showFullImage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4" onClick={closeFullImage}>
             <div className="relative max-h-2xl max-w-2xl">
-              <div className="flex h-96 w-full items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-2xl font-bold text-white">
-                Event Image
-              </div>
+              {event.ImageUrl ? (
+                <img src={event.ImageUrl} alt={event.Title} className="max-h-[70vh] w-auto rounded-lg object-contain" />
+              ) : (
+                <div className="flex h-96 w-full items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-2xl font-bold text-white">
+                  No image available
+                </div>
+              )}
               <Button
                 onClick={closeFullImage}
                 type="button"
@@ -116,11 +174,11 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
           {/* Content card */}
           <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6 lg:col-span-2">
             <div className="flex h-48 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-xl font-bold text-white" onClick={openFullImage}>
-              Click to view full image
+              {event.ImageUrl ? 'Click to view full image' : 'No image available'}
             </div>
             <div className="mt-6">
-              <h2 className="mb-2 text-3xl font-bold text-primary sm:text-4xl">Music Night Extravaganza</h2>
-              <p className="text-sm text-secondary">Join us for an exciting music-filled evening with live performances from top artists. Food and drinks available at the venue.</p>
+              <h2 className="mb-2 text-3xl font-bold text-primary sm:text-4xl">{event.Title}</h2>
+              <p className="text-sm text-secondary">{event.Description || 'No description provided.'}</p>
             </div>
             
             <div className="mt-8">
@@ -133,7 +191,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-secondary">Type</p>
-                    <p className="font-medium text-text">Music Event</p>
+                    <p className="font-medium text-text">{event.type || 'Event'}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
@@ -142,7 +200,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-secondary">Category</p>
-                    <p className="font-medium text-text">Entertainment</p>
+                    <p className="font-medium text-text">{event.category || 'General'}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
@@ -151,7 +209,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-secondary">Hosted by</p>
-                    <p className="font-medium text-text">NWU Events</p>
+                    <p className="font-medium text-text">{event.hostedBy || 'NWU Events'}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
@@ -160,7 +218,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-secondary">Date</p>
-                    <p className="font-medium text-text">October 23, 2024</p>
+                    <p className="font-medium text-text">{formatDate(event.Date)}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
@@ -169,7 +227,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-secondary">Time</p>
-                    <p className="font-medium text-text">18:00 - 20:00</p>
+                    <p className="font-medium text-text">{`${formatTime(event.Time)}${event.endTime ? ` - ${formatTime(event.endTime)}` : ''}`}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
@@ -178,16 +236,7 @@ export default function ReviewEventDetail({ onBack, onShowProfile }) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-secondary">Location</p>
-                    <p className="font-medium text-text">Amphi Theatre</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <span className="text-xl">👥</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-secondary">Attendees</p>
-                    <p className="font-medium text-text">250+ Registered</p>
+                    <p className="font-medium text-text">{event.venue || event.campus || 'TBA'}</p>
                   </div>
                 </div>
               </div>

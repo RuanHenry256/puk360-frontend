@@ -44,4 +44,68 @@ export const api = {
       body: { org_name, event_category, proposed_event_title, proposed_event_summary, proposed_date, motivation },
       token,
     }),
+  // events
+  events: {
+    list: async (params = {}) => {
+      const search = new URLSearchParams();
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && String(v).length) search.set(k, String(v));
+      });
+      const path = `/api/events${search.toString() ? `?${search.toString()}` : ''}`;
+      const res = await http(path, { method: "GET" });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+    get: async (id) => {
+      const res = await http(`/api/events/${id}`, { method: "GET" });
+      return res?.data || null;
+    },
+    create: async (payload, token) => {
+      const res = await http("/api/events", { method: "POST", body: payload, token });
+      return res?.data || null;
+    },
+    delete: async (id, token) => {
+      await http(`/api/events/${id}`, { method: "DELETE", token });
+      return true;
+    },
+    updateStatus: async (id, Status, token) => {
+      const res = await http(`/api/events/${id}/status`, { method: "PATCH", body: { Status }, token });
+      return res?.data || null;
+    },
+  },
+  venues: {
+    list: async () => {
+      const res = await http("/api/venues", { method: "GET" });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+  },
+  hosts: {
+    stats: async (hostUserId) => {
+      const res = await http(`/api/hosts/${hostUserId}/stats`, { method: 'GET' });
+      return res?.data || { avgRating: 0, totalUpcoming: 0, avgRsvpPerEvent: 0 };
+    },
+    topEvents: async (hostUserId, metric = 'rsvps', limit = 2) => {
+      const res = await http(`/api/hosts/${hostUserId}/top-events?metric=${encodeURIComponent(metric)}&limit=${limit}`, { method: 'GET' });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+    categoryMix: async (hostUserId) => {
+      const res = await http(`/api/hosts/${hostUserId}/category-mix`, { method: 'GET' });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+    rsvpTrend: async (hostUserId, days = 30) => {
+      const res = await http(`/api/hosts/${hostUserId}/rsvp-trend?days=${days}`, { method: 'GET' });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+  },
+  admin: {
+    listHostApplications: async (status = 'All', token) => {
+      const res = await http(`/api/admin/host-applications?status=${encodeURIComponent(status)}`, { method: 'GET', token });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+    reviewHostApplication: async (id, { decision, comment }, token) => {
+      const res = await http(`/api/admin/host-applications/${id}`, { method: 'PATCH', body: { decision, comment }, token });
+      return res?.ok !== false;
+    },
+  },
+  // convenience update for events
+  updateEvent: async (id, body, token) => http(`/api/events/${id}`, { method: 'PATCH', body, token }),
 };
