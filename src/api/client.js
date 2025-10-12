@@ -22,7 +22,12 @@ async function http(path, { method = "GET", body, token } = {}) {
   const data = isJson ? await res.json() : await res.text();
 
   if (!res.ok) {
-    throw new Error((data && data.error) || (typeof data === "string" ? data : `HTTP ${res.status}`));
+    const text = typeof data === 'string' ? data : '';
+    const looksHtml = /<\s*!doctype|<\s*html/i.test(text);
+    const message = (data && data.error)
+      || (looksHtml ? `API ${method} ${url} returned ${res.status}. Is the backend running at ${API_BASE}?`
+      : (text || `HTTP ${res.status}`));
+    throw new Error(message);
   }
   return data;
 }
@@ -97,6 +102,31 @@ export const api = {
     },
   },
   admin: {
+    listUsers: async (q = '', token) => {
+      const qp = q && String(q).trim().length ? `?q=${encodeURIComponent(q)}` : '';
+      const res = await http(`/api/admin/users${qp}`, { method: 'GET', token });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+    getUser: async (id, token) => {
+      const res = await http(`/api/admin/users/${id}`, { method: 'GET', token });
+      return res?.data || res;
+    },
+    reactivateHost: async (id, token) => {
+      const res = await http(`/api/admin/hosts/${id}/reactivate`, { method: 'POST', token });
+      return res?.data || null;
+    },
+    listRoles: async (token) => {
+      const res = await http('/api/admin/roles', { method: 'GET', token });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+    updateUser: async (id, payload, token) => {
+      const res = await http(`/api/admin/users/${id}`, { method: 'PATCH', body: payload, token });
+      return res?.data || null;
+    },
+    deleteUser: async (id, token) => {
+      const res = await http(`/api/admin/users/${id}`, { method: 'DELETE', token });
+      return !!res?.ok || true;
+    },
     listHostApplications: async (status = 'All', token) => {
       const res = await http(`/api/admin/host-applications?status=${encodeURIComponent(status)}`, { method: 'GET', token });
       return Array.isArray(res?.data) ? res.data : [];

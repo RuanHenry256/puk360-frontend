@@ -8,7 +8,7 @@
 */
 
 :root{
-  --tile-w: 90px;               /* width of one repeated logo */
+  --tile-w: 96px;               /* width of one repeated logo */
   --h-over-w: 0.2666667;        /* 128 / 480 (logo aspect) */
   --tile-h: calc(var(--tile-w) * var(--h-over-w));   /* exact logo height (row height) */
   --half-col: calc(var(--tile-w) / 2);               /* half a column for stagger */
@@ -17,10 +17,10 @@
 
 /* Slightly larger background tiles on desktop for a calmer feel */
 @media (min-width: 1024px){
-  :root{ --tile-w: 120px; }
+  :root{ --tile-w: 150px; }
 }
 @media (min-width: 1536px){
-  :root{ --tile-w: 140px; }
+  :root{ --tile-w: 180px; }
 }
 
 .nwu-background{
@@ -29,6 +29,8 @@
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
+  /* Subtle base fill so any microscopic mask gaps don't show as harsh corners */
+  background-color: rgba(112, 41, 141, 0.03);
 }
 
 /* Shared base for both planes */
@@ -38,10 +40,11 @@
   position:absolute;
 
   /* Oversized, then rotated to cover viewport */
-  top:-50%;
-  left:-50%;
-  width:300%;
-  height:300%;
+  /* Further oversize to avoid any viewport corner gaps on very large/aspect-ratio screens */
+  top:-150%;
+  left:-150%;
+  width:500%;
+  height:500%;
 
   background-image:url('../assets/nwu-logo.png');
   background-repeat:repeat;
@@ -72,7 +75,7 @@
     transparent var(--tile-h) calc(2 * var(--tile-h))
   );
 
-  animation: panA 40s linear infinite;
+  animation: panA 60s linear infinite;
 }
 
 /* -----------------
@@ -95,7 +98,7 @@
     #000 var(--tile-h) calc(2 * var(--tile-h))
   );
 
-  animation: panB 40s linear infinite;
+  animation: panB 60s linear infinite;
 }
 
 /* Seamless horizontal pan (move by whole tiles).

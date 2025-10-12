@@ -112,7 +112,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                 <img
                   src={nwuLogo}
                   alt="NWU logo"
-                  className="w-[72px] h-[72px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
+                  className="w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
                 />
                 <h1 className="text-5xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   PUK360
@@ -140,7 +140,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
               <img
                 src={nwuLogo}
                 alt="NWU logo"
-                className="w-[68px] h-[68px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
+                className="w-[72px] h-[72px] lg:w-[84px] lg:h-[84px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
               />
               {/* ✅ Punchier title */}
               <h1 className="text-5xl sm:text-4xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">

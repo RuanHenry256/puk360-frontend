@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import AdminUserEdit from './AdminUserEdit';
 import Sidebar from '../components/Sidebar';
 import { Home, CalendarDays, ClipboardList, User2 } from 'lucide-react';
 import { api } from '../api/client';
 
-function OverviewPage() {
+function OverviewPage({ totalUsers = 0 }) {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
@@ -15,7 +16,7 @@ function OverviewPage() {
           </div>
           <div className="rounded-lg bg-secondary/10 p-4">
             <p className="text-sm text-secondary">Total Users</p>
-            <p className="text-3xl font-bold text-primary">1,423</p>
+            <p className="text-3xl font-bold text-primary">{totalUsers}</p>
           </div>
           <div className="rounded-lg bg-secondary/10 p-4">
             <p className="text-sm text-secondary">Active Events</p>
@@ -92,7 +93,15 @@ function EventsPage() {
   );
 }
 
-function UsersPage() {
+function UsersPage({ users = [], loading = false, error = '', searchTerm, setSearchTerm, onEdit }) {
+  const filtered = useMemo(() => {
+    const q = (searchTerm || '').toLowerCase();
+    if (!q) return users;
+    return users.filter((u) =>
+      String(u.Name || u.name || '').toLowerCase().includes(q) ||
+      String(u.Email || u.email || '').toLowerCase().includes(q)
+    );
+  }, [users, searchTerm]);
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
@@ -102,32 +111,49 @@ function UsersPage() {
           <input
             type="text"
             placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-lg border border-secondary/60 p-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
           />
         </div>
 
-        <div className="space-y-3">
-          {[
-            { name: 'Kamo', email: 'kamo@example.com', role: 'Student' },
-            { name: 'Sarah Johnson', email: 'sarah@example.com', role: 'Admin' },
-            { name: 'Mike Chen', email: 'mike@example.com', role: 'Student' }
-          ].map((user, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg border border-secondary/40 bg-white p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                  {user.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="font-semibold text-text">{user.name}</p>
-                  <p className="text-sm text-secondary">{user.email}</p>
-                </div>
-              </div>
-              <span className="rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
-                {user.role}
-              </span>
-            </div>
-          ))}
-        </div>
+        {loading && (
+          <div className="flex items-center justify-center py-8"><div className="spinner" /></div>
+        )}
+        {error && (
+          <div className="rounded-lg border border-secondary/40 bg-white p-4 text-red-600">{error}</div>
+        )}
+        {!loading && !error && (
+          <div className="space-y-3 text-left">
+            {filtered.map((user) => {
+              const name = user.Name || user.name || '';
+              const email = user.Email || user.email || '';
+              const roles = user.Roles || user.roles || [];
+              const roleBadge = Array.isArray(roles) && roles.length ? roles[0] : (user.role || 'User');
+              return (
+                <button type="button" onClick={() => onEdit(user)}
+                  key={user.User_ID || `${name}-${email}`}
+                  className="flex w-full items-center justify-between rounded-lg border border-secondary/40 bg-white p-4 text-left hover:shadow-md">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
+                      {String(name).charAt(0) || '?'}
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-text">{name}</p>
+                      <p className="text-sm text-secondary">{email}</p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
+                    {roleBadge}
+                  </span>
+                </button>
+              );
+            })}
+            {filtered.length === 0 && (
+              <div className="rounded-lg border border-secondary/40 bg-white p-4 text-secondary">No users found</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -140,6 +166,11 @@ export default function AdminDashboard({ onSignOut }) {
   const [appsLoading, setAppsLoading] = useState(false);
   const [appsError, setAppsError] = useState('');
   const [selectedApp, setSelectedApp] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [editingUser, setEditingUser] = useState(null);
 
   async function loadApps(status = 'Pending') {
     try {
@@ -154,7 +185,29 @@ export default function AdminDashboard({ onSignOut }) {
 
   useEffect(() => {
     if (activeTab === 'hostapps') loadApps('Pending');
-  }, [activeTab]);
+    if (activeTab === 'users' && users.length === 0) {
+      loadUsers();
+    }
+  }, [activeTab, users.length]);
+
+  useEffect(() => {
+    // Initial load for overview count
+    if (users.length === 0) loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function loadUsers(q = '') {
+    try {
+      setUsersLoading(true); setUsersError('');
+      const token = localStorage.getItem('token');
+      const list = await api.admin.listUsers(q, token);
+      setUsers(Array.isArray(list) ? list : []);
+    } catch (e) {
+      setUsersError(e.message || 'Failed to load users');
+    } finally { setUsersLoading(false); }
+  }
+
+  // roles and user details are loaded on the dedicated edit screen
 
   async function review(id, decision, comment) {
     try {
@@ -259,15 +312,39 @@ export default function AdminDashboard({ onSignOut }) {
   const renderPage = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewPage />;
+        return <OverviewPage totalUsers={users.length} />;
       case 'events':
         return <EventsPage />;
       case 'hostapps':
         return <HostAppsPage />;
       case 'users':
-        return <UsersPage />;
+        return (
+          editingUser ? (
+            <AdminUserEdit
+              userId={editingUser.User_ID || editingUser.id}
+              onBack={(result) => {
+                setEditingUser(null);
+                if (result?.deleted) {
+                  setUsers((prev) => prev.filter((u) => u.User_ID !== result.id));
+                } else if (result) {
+                  // refresh list to reflect potential role/name changes
+                  loadUsers();
+                }
+              }}
+            />
+          ) : (
+            <UsersPage
+              users={users}
+              loading={usersLoading}
+              error={usersError}
+              searchTerm={userSearch}
+              setSearchTerm={setUserSearch}
+              onEdit={(u) => setEditingUser(u)}
+            />
+          )
+        );
       default:
-        return <OverviewPage />;
+        return <OverviewPage totalUsers={users.length} />;
     }
   };
 

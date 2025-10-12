@@ -69,31 +69,32 @@ export default function HostMain({ onSignOut }) {
   const [topReviews, setTopReviews] = useState([]);
   const [catMix, setCatMix] = useState([]);
   const [trend, setTrend] = useState([]);
+
+  async function loadStats() {
+    try {
+      if (!user?.id) return;
+      const s = await api.hosts.stats(user.id);
+      const [rsvps, reviews, mix, tr] = await Promise.all([
+        api.hosts.topEvents(user.id, 'rsvps', 2),
+        api.hosts.topEvents(user.id, 'reviews', 2),
+        api.hosts.categoryMix(user.id),
+        api.hosts.rsvpTrend(user.id, 30),
+      ]);
+      setStats(s);
+      setTopRsvps(rsvps);
+      setTopReviews(reviews);
+      setCatMix(mix);
+      setTrend(tr);
+    } catch (_) { /* ignore */ }
+  }
+
+  // Initial stats load
+  useEffect(() => { loadStats(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  // Refresh stats whenever returning to the Overview tab
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        if (user?.id) {
-          const s = await api.hosts.stats(user.id);
-          const [rsvps, reviews, mix, tr] = await Promise.all([
-            api.hosts.topEvents(user.id, 'rsvps', 2),
-            api.hosts.topEvents(user.id, 'reviews', 2),
-            api.hosts.categoryMix(user.id),
-            api.hosts.rsvpTrend(user.id, 30),
-          ]);
-          if (!cancelled) {
-            setStats(s);
-            setTopRsvps(rsvps);
-            setTopReviews(reviews);
-            setCatMix(mix);
-            setTrend(tr);
-          }
-        }
-      } catch (_) { /* ignore */ }
-    })();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (activeSection === 'overview') loadStats();
+  }, [activeSection]);
 
   const Overview = () => (
     <div className="space-y-6">
@@ -423,7 +424,7 @@ export default function HostMain({ onSignOut }) {
           <div className="w-full max-w-2xl">
             <HostCreateEvent
               onCancel={() => setCreating(false)}
-              onCreated={() => { setCreating(false); loadMyEvents(); }}
+              onCreated={() => { setCreating(false); loadMyEvents(); loadStats(); }}
             />
           </div>
         </div>
