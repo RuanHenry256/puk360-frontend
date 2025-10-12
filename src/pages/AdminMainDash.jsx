@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
+import { Home, CalendarDays, ClipboardList, User2 } from 'lucide-react';
 import { api } from '../api/client';
 
 function OverviewPage() {
@@ -177,7 +178,7 @@ export default function AdminDashboard({ onSignOut }) {
               <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={()=>loadApps('All')}>All</button>
             </div>
           </div>
-          {appsLoading && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-secondary">Loading…</div>}
+          {appsLoading && <div className="flex items-center justify-center py-8"><div className="spinner" /></div>}
           {appsError && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-red-600">{appsError}</div>}
           {!appsLoading && !appsError && (
             <div>
@@ -217,7 +218,7 @@ export default function AdminDashboard({ onSignOut }) {
     const [comment, setComment] = useState('');
     if (!app) return null;
     return (
-      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/30 p-4" onClick={onClose}>
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/50 p-4" onClick={onClose}>
         <div className="w-full max-w-2xl rounded-2xl border border-secondary/40 bg-white p-6 shadow-xl" onClick={(e)=>e.stopPropagation()}>
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-2xl font-bold text-primary">Review Application</h3>
@@ -296,7 +297,7 @@ export default function AdminDashboard({ onSignOut }) {
         </div>
       </div>
       
-      <div className="mx-auto max-w-7xl px-4 pt-20 pb-20 sm:px-6 lg:px-8 lg:pl-64">
+      <div className="mx-auto max-w-7xl px-4 pt-20 pb-20 sm:px-6 lg:px-8 lg:pl-64 page-animate">
         {renderPage()}
       </div>
       {activeTab === 'hostapps' && selectedApp && (
@@ -309,10 +310,10 @@ export default function AdminDashboard({ onSignOut }) {
         activeId={activeTab}
         onSelect={setActiveTab}
         items={[
-          { id: 'overview', label: 'Overview', icon: '🏠' },
-          { id: 'events', label: 'Events', icon: '📅' },
-          { id: 'hostapps', label: 'Host Applications', icon: '📝' },
-          { id: 'users', label: 'Users', icon: '👤' },
+          { id: 'overview', label: 'Overview', icon: <Home size={16} /> },
+          { id: 'events', label: 'Events', icon: <CalendarDays size={16} /> },
+          { id: 'hostapps', label: 'Host Applications', icon: <ClipboardList size={16} /> },
+          { id: 'users', label: 'Users', icon: <User2 size={16} /> },
         ]}
         onSignOut={onSignOut}
       />

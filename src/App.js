@@ -14,6 +14,8 @@ import EventHostRequest from './pages/EventHostRequest'; // 🟣 Added
 import { api } from './api/client';
 import './styles/App.css';
 import Footer from './components/Footer';
+import Legal from './pages/Legal';
+import Contact from './pages/Contact';
 
 function App() {
   const [view, setView] = useState('login'); // 'login' | 'events' | 'details' | 'profile' | 'hostrequest' | 'host' | 'admin'
@@ -28,6 +30,9 @@ function App() {
       return null;
     }
   });
+  const [legalSection, setLegalSection] = useState(null);
+  const [contactSection, setContactSection] = useState(null);
+  const [returnView, setReturnView] = useState('events');
 
   const handleLoginSuccess = () => {
     // Route to the correct workspace based on roles
@@ -89,6 +94,18 @@ function App() {
     setView('login');
   };
 
+  // Simple in-app navigation for footer links
+  const openLegal = (section) => {
+    setReturnView(view); // remember where we came from
+    setLegalSection(section);
+    setView('legal');
+  };
+  const openContact = (section) => {
+    setReturnView(view);
+    setContactSection(section || null);
+    setView('contact');
+  };
+
   const handleUpdateProfile = async (updates) => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -113,7 +130,7 @@ function App() {
   };
 
   return (
-    <div className={"App " + (view !== 'login' ? 'App--with-gradient' : '')}>
+    <div className={"App " + (view === 'login' ? 'App--login' : 'App--with-gradient')}>
       {view === 'login' && (
         <LoginScreen onLoginSuccess={handleLoginSuccess} />
       )}
@@ -153,7 +170,15 @@ function App() {
         <AdminDashboard onSignOut={handleSignOut} />
       )}
 
-      {view !== 'login' && <Footer />}
+      {view === 'legal' && (
+        <Legal section={legalSection || 'terms'} onBack={() => setView(returnView || 'events')} onShowProfile={handleShowProfile} />
+      )}
+
+      {view === 'contact' && (
+        <Contact section={contactSection} onBack={() => setView(returnView || 'events')} onShowProfile={handleShowProfile} />
+      )}
+
+      {view !== 'login' && <Footer onOpenLegal={openLegal} onOpenContact={openContact} />}
     </div>
   );
 }

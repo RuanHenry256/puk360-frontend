@@ -4,6 +4,7 @@ import { api } from '../api/client';
 import Button from '../components/Button';
 import TopBar from '../components/TopBar';
 import '../styles/filterPanel.css';
+import Spinner from '../components/Spinner';
 
 // Local date formatter (keeps previous display format)
 const formatEventDate = (dateString) =>
@@ -12,6 +13,28 @@ const formatEventDate = (dateString) =>
     month: 'long',
     day: 'numeric',
   });
+
+// Known options (module scope to avoid changing useEffect deps)
+const KNOWN_CAMPUSES = ['Potchefstroom', 'Mahikeng', 'Vaal'];
+const KNOWN_CATEGORIES = ['Entertainment', 'Community', 'Music', 'Sports', 'Art', 'Academic'];
+
+// Helpers for week generation/formatting (module scope)
+function startOfWeek(d) {
+  const date = new Date(d);
+  const day = (date.getDay() + 6) % 7; // Mon=0..Sun=6
+  date.setDate(date.getDate() - day);
+  date.setHours(0,0,0,0);
+  return date;
+}
+function endOfWeek(d) {
+  const s = startOfWeek(d);
+  const e = new Date(s);
+  e.setDate(e.getDate() + 6);
+  e.setHours(23,59,59,999);
+  return e;
+}
+function fmtISO(d) { return d.toISOString().slice(0,10); }
+function fmtLabel(d) { return d.toLocaleDateString('en-ZA', { day:'2-digit', month:'short' }); }
 
 export default function EventListing({ onSelectEvent, onShowProfile, showTopBar = true }) {
   const [events, setEvents] = useState([]);
@@ -70,10 +93,6 @@ export default function EventListing({ onSelectEvent, onShowProfile, showTopBar 
   const [categories, setCategories] = useState([]);
   const [campuses, setCampuses] = useState([]);
 
-  // Known options to ensure filters are comprehensive even if DB data is uniform
-  const KNOWN_CAMPUSES = ['Potchefstroom', 'Mahikeng', 'Vaal'];
-  const KNOWN_CATEGORIES = ['Entertainment', 'Community', 'Music', 'Sports', 'Art', 'Academic'];
-
   useEffect(() => {
     const catsLive = Array.from(new Set(events.map(e => (e.category || '').trim()).filter(Boolean)));
     const cats = Array.from(new Set([...KNOWN_CATEGORIES, ...catsLive])).filter(Boolean).sort((a,b)=>a.localeCompare(b));
@@ -121,23 +140,7 @@ export default function EventListing({ onSelectEvent, onShowProfile, showTopBar 
     setFilteredEvents(list);
   }, [events, filters, searchTerm]);
 
-  // Helpers
-  function startOfWeek(d) {
-    const date = new Date(d);
-    const day = (date.getDay() + 6) % 7; // convert Sun(0)..Sat(6) -> Mon(0)..Sun(6)
-    date.setDate(date.getDate() - day);
-    date.setHours(0,0,0,0);
-    return date;
-  }
-  function endOfWeek(d) {
-    const s = startOfWeek(d);
-    const e = new Date(s);
-    e.setDate(e.getDate() + 6);
-    e.setHours(23,59,59,999);
-    return e;
-  }
-  function fmtISO(d) { return d.toISOString().slice(0,10); }
-  function fmtLabel(d) { return d.toLocaleDateString('en-ZA', { day:'2-digit', month:'short' }); }
+  // Helpers moved to module scope
 
   const handleFilterChange = (e) => setFilters((p) => ({ ...p, [e.target.name]: e.target.value }));
   const toggleFilters = () => setFiltersOpen((prev) => !prev);
@@ -245,11 +248,11 @@ export default function EventListing({ onSelectEvent, onShowProfile, showTopBar 
 
         {/* Cards / Loading / Error */}
         {loading ? (
-          <div className="flex items-center justify-center py-12 text-secondary">Loading events…</div>
+          <div className="flex items-center justify-center py-12 text-secondary"><Spinner size={40} label="Loading events" /></div>
         ) : error ? (
           <div className="flex items-center justify-center py-12 text-red-600">{error}</div>
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6 fade-in-mobile">
             {filteredEvents.map((event) => (
               <li
                 key={event.id}
@@ -261,10 +264,10 @@ export default function EventListing({ onSelectEvent, onShowProfile, showTopBar 
                 aria-label={`View details for ${event.title}`}
               >
                 {event.image ? (
-                  <img src={event.image} alt={`${event.title} image`} className="h-48 w-full object-cover sm:h-64" />
+                  <img src={event.image} alt={event.title} className="h-48 w-full object-cover sm:h-64" />
                 ) : (
                   <div className="flex h-48 w-full items-center justify-center bg-white text-secondary sm:h-64">
-                    {`${event.title} image`}
+                    {event.title}
                   </div>
                 )}
                 <div className="flex flex-col gap-3 px-4 py-5 text-left sm:px-6">

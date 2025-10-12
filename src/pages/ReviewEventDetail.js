@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Button from "../components/Button";
+import Spinner from "../components/Spinner";
 import TopBar from "../components/TopBar";
 import { api } from "../api/client";
+import { Music, Tag, Building2, CalendarDays, Clock3, MapPin } from 'lucide-react';
 
 export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
   const [event, setEvent] = useState(null);
@@ -95,7 +97,7 @@ export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
       <div className="text-text">
         <TopBar onBack={onBack} onProfileClick={onShowProfile} backLabel="Back to Events" />
         <div className="mx-auto max-w-6xl px-4 pt-[88px] pb-6 sm:px-6 lg:px-8">
-          <p className="text-secondary">Loading event…</p>
+          <div className="flex items-center justify-center py-12"><Spinner size={40} label="Loading event" /></div>
         </div>
       </div>
     );
@@ -120,7 +122,7 @@ export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
 
         {/* Full Image Modal */}
         {showFullImage && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4" onClick={closeFullImage}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeFullImage}>
             <div className="relative max-h-2xl max-w-2xl">
               {event.ImageUrl ? (
                 <img src={event.ImageUrl} alt={event.Title} className="max-h-[70vh] w-auto rounded-lg object-contain" />
@@ -145,7 +147,7 @@ export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
 
         {/* Guidelines Modal */}
         {showGuidelines && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={closeGuidelines}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeGuidelines}>
             <div className="mx-4 w-full max-w-md rounded-2xl border border-secondary/30 bg-primary/5 shadow-xl" onClick={(e) => e.stopPropagation()}>
               <div className="p-6">
                 <div className="mb-6 flex items-center justify-between">
@@ -170,9 +172,9 @@ export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
         )}
 
         {/* Sections wrapper to enforce spacing between cards */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6">
           {/* Content card */}
-          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6 lg:col-span-2">
+          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6">
             <div className="flex h-48 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-xl font-bold text-white" onClick={openFullImage}>
               {event.ImageUrl ? 'Click to view full image' : 'No image available'}
             </div>
@@ -184,78 +186,67 @@ export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
             <div className="mt-8">
               <h3 className="mb-2 text-2xl font-bold text-primary">Event Summary</h3>
               <p className="mb-6 text-sm text-secondary">Here's a quick snapshot of the key details.</p>
-              <div className="space-y-4">
+              <div className="space-y-3">
+                {/* Details rows justified: label left, value right */}
                 <div className="flex items-center">
-                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <span className="text-xl">🎵</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-secondary">Type</p>
-                    <p className="font-medium text-text">{event.type || 'Event'}</p>
-                  </div>
+                  <span className="flex items-center gap-1 text-sm font-semibold text-primary">
+                    <Music size={18} className="text-primary" />
+                    Type
+                  </span>
+                  <span className="ml-4 flex-1 text-right font-medium text-text">{event.type || 'Event'}</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <span className="text-xl">🎭</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-secondary">Category</p>
-                    <p className="font-medium text-text">{event.category || 'General'}</p>
-                  </div>
+                  <span className="flex items-center gap-1 text-sm font-semibold text-primary">
+                    <Tag size={18} className="text-primary" />
+                    Category
+                  </span>
+                  <span className="ml-4 flex-1 text-right font-medium text-text">{event.category || 'General'}</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <span className="text-xl">🏢</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-secondary">Hosted by</p>
-                    <p className="font-medium text-text">{event.hostedBy || 'NWU Events'}</p>
-                  </div>
+                  <span className="flex items-center gap-1 text-sm font-semibold text-primary">
+                    <Building2 size={18} className="text-primary" />
+                    Hosted by
+                  </span>
+                  <span className="ml-4 flex-1 text-right font-medium text-text">{event.hostedBy || 'NWU Events'}</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <span className="text-xl">📅</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-secondary">Date</p>
-                    <p className="font-medium text-text">{formatDate(event.Date)}</p>
-                  </div>
+                  <span className="flex items-center gap-1 text-sm font-semibold text-primary">
+                    <CalendarDays size={18} className="text-primary" />
+                    Date
+                  </span>
+                  <span className="ml-4 flex-1 text-right font-medium text-text">{formatDate(event.Date)}</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <span className="text-xl">⏰</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-secondary">Time</p>
-                    <p className="font-medium text-text">{`${formatTime(event.Time)}${event.endTime ? ` - ${formatTime(event.endTime)}` : ''}`}</p>
-                  </div>
+                  <span className="flex items-center gap-1 text-sm font-semibold text-primary">
+                    <Clock3 size={18} className="text-primary" />
+                    Time
+                  </span>
+                  <span className="ml-4 flex-1 text-right font-medium text-text">{`${formatTime(event.Time)}${event.endTime ? ` - ${formatTime(event.endTime)}` : ''}`}</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <span className="text-xl">📍</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-secondary">Location</p>
-                    <p className="font-medium text-text">{event.venue || event.campus || 'TBA'}</p>
-                  </div>
+                  <span className="flex items-center gap-1 text-sm font-semibold text-primary">
+                    <MapPin size={18} className="text-primary" />
+                    Location
+                  </span>
+                  <span className="ml-4 flex-1 text-right font-medium text-text">{event.venue || event.campus || 'TBA'}</span>
                 </div>
+              </div>
+
+              {/* RSVP action now part of summary */}
+              <div className="mt-6">
+                <h4 className="mb-3 text-xl font-semibold text-primary">Will you be attending?</h4>
+                <Button onClick={handleRSVP} variant="primary" size="large">
+                  {rsvp ? 'Going' : 'RSVP to this Event'}
+                </Button>
+                {rsvp && (
+                  <p className="mt-3 text-sm font-medium text-primary">You're attending this event! We'll send you a reminder.</p>
+                )}
               </div>
             </div>
           </div>
-          
-          {/* 2) RSVP section */}
-          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6 lg:col-span-1">
-            <h3 className="mb-3 text-2xl font-bold text-primary sm:text-2xl">Will you be attending?</h3>
-            <Button onClick={handleRSVP} variant="primary" size="large">
-              {rsvp ? "Going" : "RSVP to this Event"}
-            </Button>
-            {rsvp && (
-              <p className="mt-3 text-lg font-bold text-primary">You're attending this event! We'll send you a reminder.</p>
-            )}
-          </div>
 
           {/* 3) Review section */}
-          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6 lg:col-span-3">
+          <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6">
             <div>
               <h2 className="mb-4 text-3xl font-bold text-primary sm:text-4xl">Write a Review</h2>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
+import { Home, CalendarDays, Newspaper, User2 } from 'lucide-react';
 import { api } from '../api/client';
 import HostCreateEvent from './HostCreateEvent';
 import HostEventDetail from './HostEventDetail';
@@ -57,10 +58,10 @@ export default function HostMain({ onSignOut }) {
   };
 
   const menuItems = [
-    { id: 'overview', label: 'Overview', icon: '🏠' },
-    { id: 'myevents', label: 'My Events', icon: '📅' },
-    { id: 'feed', label: 'Feed', icon: '📰' },
-    { id: 'account', label: 'Account', icon: '👤' },
+    { id: 'overview', label: 'Overview', icon: <Home size={16} /> },
+    { id: 'myevents', label: 'My Events', icon: <CalendarDays size={16} /> },
+    { id: 'feed', label: 'Feed', icon: <Newspaper size={16} /> },
+    { id: 'account', label: 'Account', icon: <User2 size={16} /> },
   ];
 
   const [stats, setStats] = useState({ avgRating: 0, totalUpcoming: 0, avgRsvpPerEvent: 0 });
@@ -220,23 +221,61 @@ export default function HostMain({ onSignOut }) {
           <option>Cancelled</option>
           <option>Completed</option>
         </select>
+        {isHostActive && (
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="ml-auto hidden rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 lg:inline-flex"
+          >
+            + Create Event
+          </button>
+        )}
       </div>
       {loading && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-secondary">Loading…</div>}
       {error && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-red-600">{error}</div>}
       {!loading && !error && filteredMyEvents.length === 0 && (
-        <div className="rounded-lg border border-secondary/40 bg-white p-6 text-secondary">You have no events yet. Tap the + button to create one.</div>
+        <div className="rounded-lg border border-secondary/40 bg-white p-6 text-secondary">You have no events yet. {isHostActive ? 'Click Create Event to add one.' : ''}</div>
       )}
       {!loading && !error && filteredMyEvents.map((e) => (
-        <div key={e.Event_ID} className="flex items-center justify-between rounded-lg border border-secondary/40 bg-white p-4">
+        <div
+          key={e.Event_ID}
+          role="button"
+          tabIndex={0}
+          onClick={() => setSelectedEventId(e.Event_ID)}
+          onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') setSelectedEventId(e.Event_ID); }}
+          className="flex cursor-pointer items-center justify-between rounded-lg border border-secondary/40 bg-white p-4 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          aria-label={`Open details for ${e.Title}`}
+        >
           <div>
-            <button className="text-left font-semibold text-text hover:underline" onClick={()=>setSelectedEventId(e.Event_ID)}>{e.Title}</button>
+            <p className="text-left font-semibold text-text">{e.Title}</p>
             <p className="text-sm text-secondary">{new Date((typeof e.Date === 'string' ? e.Date : e.Date?.toString()) + 'T00:00:00').toLocaleDateString('en-ZA', { year:'numeric', month:'short', day:'2-digit' })} • {e.venue || e.campus}</p>
             <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-xs text-secondary">{e.Status || 'Scheduled'}</span>
           </div>
           <div className="flex gap-2">
-            <button disabled={!isHostActive} className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary disabled:opacity-50" onClick={()=>duplicateEvent(e)}>Duplicate</button>
-            <button disabled={!isHostActive} className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary disabled:opacity-50" onClick={()=>updateStatus(e,'Cancelled')}>Cancel</button>
-            <button disabled={!isHostActive} className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50" onClick={()=>deleteEvent(e)}>Delete</button>
+            <button
+              disabled={!isHostActive}
+              className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary disabled:opacity-50"
+              onClick={(ev)=>{ ev.stopPropagation(); duplicateEvent(e); }}
+              onKeyDown={(ev)=>ev.stopPropagation()}
+            >
+              Duplicate
+            </button>
+            <button
+              disabled={!isHostActive}
+              className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary disabled:opacity-50"
+              onClick={(ev)=>{ ev.stopPropagation(); updateStatus(e,'Cancelled'); }}
+              onKeyDown={(ev)=>ev.stopPropagation()}
+            >
+              Cancel
+            </button>
+            <button
+              disabled={!isHostActive}
+              className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+              onClick={(ev)=>{ ev.stopPropagation(); deleteEvent(e); }}
+              onKeyDown={(ev)=>ev.stopPropagation()}
+            >
+              Delete
+            </button>
           </div>
         </div>
       ))}
@@ -344,7 +383,7 @@ export default function HostMain({ onSignOut }) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 pt-20 pb-24 sm:px-6 lg:px-8 lg:pl-64">
+      <div className="mx-auto max-w-7xl px-4 pt-20 pb-24 sm:px-6 lg:px-8 lg:pl-64 page-animate">
         {(() => {
           const h = pageHeading();
           return h ? (
@@ -371,7 +410,7 @@ export default function HostMain({ onSignOut }) {
           type="button"
           aria-label="Create new event"
           title="Create new event"
-          className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 transform rounded-full bg-primary text-white shadow-xl ring-4 ring-primary/20 hover:opacity-95 active:scale-95 transition w-16 h-16 flex items-center justify-center text-3xl"
+          className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 transform rounded-full bg-primary text-white shadow-xl ring-4 ring-primary/20 hover:opacity-95 active:scale-95 transition w-16 h-16 flex items-center justify-center text-3xl lg:hidden"
           onClick={() => setCreating(true)}
         >
           +
@@ -380,7 +419,7 @@ export default function HostMain({ onSignOut }) {
 
       {/* Create form overlay */}
       {activeSection === 'myevents' && creating && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/20 p-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/50 p-4">
           <div className="w-full max-w-2xl">
             <HostCreateEvent
               onCancel={() => setCreating(false)}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Button from '../components/Button';
+import Spinner from '../components/Spinner';
 import { api } from '../api/client';
 
 export default function HostEventDetail({ eventId, onClose, canEdit = true }) {
@@ -91,14 +92,14 @@ export default function HostEventDetail({ eventId, onClose, canEdit = true }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/30 p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/50 p-4">
       <div className="w-full max-w-3xl rounded-2xl border border-secondary/40 bg-white p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-primary">Event Details</h2>
           <Button variant="link" onClick={onClose}>✕</Button>
         </div>
         {loading ? (
-          <p className="text-secondary">Loading…</p>
+          <div className="flex items-center justify-center py-8"><Spinner size={36} label="Loading" /></div>
         ) : error ? (
           <p className="text-red-600">{error}</p>
         ) : (

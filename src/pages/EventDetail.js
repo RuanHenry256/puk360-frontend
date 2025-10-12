@@ -52,7 +52,7 @@ export default function EventDetail() {
       {/* Full Image Modal */}
       {showFullImage && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={closeFullImage}
         >
           <div className="relative max-w-2xl max-h-2xl">
@@ -79,7 +79,7 @@ export default function EventDetail() {
       {/* Guidelines Modal */}
       {showGuidelines && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={closeGuidelines}
         >
           <div 
