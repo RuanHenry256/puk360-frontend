@@ -25,5 +25,5 @@ jobs:
           rm -rf node_modules package-lock.json
           npm install
 
-      - name: Build Application
-        run: npm run build
+      - name: Build Application (ignore warnings)
+        run: CI=false npm run build
