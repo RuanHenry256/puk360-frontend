@@ -65,6 +65,13 @@ This guide lists the major UI components and flows implemented.
   - If Host role is selected and the host account is inactive, a Reactivate button appears (calls `POST /api/admin/hosts/:id/reactivate`).
 - Overview tile “Total Users” uses the loaded list count instead of a hardcoded number.
 
+Enhancements
+- Role filter pills above the list: `All`, `Student`, `Host`, `Admin`.
+  - Filters combine with the text search.
+- Color‑coded role badges for quick scanning:
+  - Student = purple, Host = blue, Admin = bright green.
+- Mobile readability: user email is shortened (e.g., `45829084@myn...`) to keep the role badge inside the card without overflow.
+
 Notes
 - If `/api/admin/roles` is unavailable, the edit screen falls back to the known role IDs (1,2,3) and still pre‑selects the user’s current roles.
 
@@ -74,6 +81,7 @@ Notes
 ## Login background + logos (new)
 - Background planes oversize to eliminate top‑left gaps on wide screens; animation slowed for mobile and desktop.
 - NWU logos are larger on desktop in both left hero and login card header.
+ - Layout refinements: login card and controls reduced ~10% (smaller logo/title, tighter paddings, shorter inputs) for better default 100% zoom ergonomics.
 
 ## Environment
 - Frontend uses `REACT_APP_API_URL` to reach the backend (defaults to `http://localhost:5000`).

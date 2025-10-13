@@ -21,7 +21,8 @@ npm start
 - `src/pages/HostMain.jsx` — host workspace (Overview, My Events, Feed, Account) with left sidebar.
 - `src/pages/HostCreateEvent.jsx` — create event overlay (free‑text `venue`, `ImageUrl`).
 - `src/pages/HostEventDetail.jsx` — editable event detail overlay (Save/Duplicate/Delete/Status) honoring host active status.
-- `src/pages/AdminMainDash.jsx` — admin dashboard with Host Applications review (grid + detail modal).
+- `src/pages/AdminMainDash.jsx` – admin dashboard with Host Applications review (grid + detail modal) and Users management (search, edit, delete, reactivate host).
+  - Users list includes role filter pills (`All`, `Student`, `Host`, `Admin`) and color‑coded badges (Student=purple, Host=blue, Admin=bright green). On mobile, emails are shortened (e.g., `45829084@myn...`) to keep badges neatly inside cards.
 - `src/components/Sidebar.jsx` — responsive sidebar; mobile drawer + desktop rail.
 - `src/api/client.js` — API helpers (`events`, `hosts` analytics, `admin` host applications).
 

@@ -93,15 +93,41 @@ function EventsPage() {
   );
 }
 
-function UsersPage({ users = [], loading = false, error = '', searchTerm, setSearchTerm, onEdit }) {
+function UsersPage({ users = [], loading = false, error = '', searchTerm, setSearchTerm, onEdit, roleFilter = 'All', setRoleFilter = () => {} }) {
+  const shortEmail = (value) => {
+    if (!value) return '';
+    const str = String(value);
+    const [local, domain = ''] = str.split('@');
+    const localShort = local.length > 8 ? local.slice(0, 8) : local;
+    const domainShort = domain.length > 3 ? domain.slice(0, 3) + '...' : domain;
+    return domain ? `${localShort}@${domainShort}` : localShort;
+  };
   const filtered = useMemo(() => {
     const q = (searchTerm || '').toLowerCase();
-    if (!q) return users;
-    return users.filter((u) =>
+    const normFilter = String(roleFilter || 'All');
+    const matchText = (u) =>
       String(u.Name || u.name || '').toLowerCase().includes(q) ||
-      String(u.Email || u.email || '').toLowerCase().includes(q)
-    );
-  }, [users, searchTerm]);
+      String(u.Email || u.email || '').toLowerCase().includes(q);
+    const matchRole = (u) => {
+      if (normFilter === 'All') return true;
+      const roles = u.Roles || u.roles || [];
+      return Array.isArray(roles) && roles.map(String).some((r) => r.toLowerCase() === normFilter.toLowerCase());
+    };
+    return users.filter((u) => (!q || matchText(u)) && matchRole(u));
+  }, [users, searchTerm, roleFilter]);
+
+  const roleChipClass = (roleName) => {
+    switch ((roleName || '').toLowerCase()) {
+      case 'student':
+        return 'bg-purple-100 text-purple-700 border border-purple-200';
+      case 'host':
+        return 'bg-blue-100 text-blue-700 border border-blue-200';
+      case 'admin':
+        return 'bg-green-200 text-green-800 border border-green-300';
+      default:
+        return 'bg-secondary/10 text-secondary';
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
@@ -117,6 +143,25 @@ function UsersPage({ users = [], loading = false, error = '', searchTerm, setSea
           />
         </div>
 
+        {/* Role filter pills */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {['All', 'Student', 'Host', 'Admin'].map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setRoleFilter(opt)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                (roleFilter || 'All') === opt
+                  ? 'bg-primary text-white'
+                  : 'bg-secondary/10 text-secondary hover:bg-secondary/20'
+              }`}
+              aria-pressed={(roleFilter || 'All') === opt}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+
         {loading && (
           <div className="flex items-center justify-center py-8"><div className="spinner" /></div>
         )}
@@ -130,6 +175,7 @@ function UsersPage({ users = [], loading = false, error = '', searchTerm, setSea
               const email = user.Email || user.email || '';
               const roles = user.Roles || user.roles || [];
               const roleBadge = Array.isArray(roles) && roles.length ? roles[0] : (user.role || 'User');
+              const badgeClass = roleChipClass(roleBadge);
               return (
                 <button type="button" onClick={() => onEdit(user)}
                   key={user.User_ID || `${name}-${email}`}
@@ -138,12 +184,14 @@ function UsersPage({ users = [], loading = false, error = '', searchTerm, setSea
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
                       {String(name).charAt(0) || '?'}
                     </div>
-                    <div className="text-left">
+                  <div className="text-left min-w-0">
                       <p className="font-semibold text-text">{name}</p>
-                      <p className="text-sm text-secondary">{email}</p>
+                      {/* Shorter email on mobile to make space for role badge */}
+                      <p className="text-xs text-secondary sm:hidden">{shortEmail(email)}</p>
+                      <p className="hidden sm:block text-sm text-secondary">{email}</p>
                     </div>
                   </div>
-                  <span className="rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
+                  <span className={`rounded-full px-3 py-1 text-xs font-medium shrink-0 ml-2 ${badgeClass}`}>
                     {roleBadge}
                   </span>
                 </button>
@@ -170,6 +218,7 @@ export default function AdminDashboard({ onSignOut }) {
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState('');
   const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('All');
   const [editingUser, setEditingUser] = useState(null);
 
   async function loadApps(status = 'Pending') {
@@ -339,6 +388,8 @@ export default function AdminDashboard({ onSignOut }) {
               error={usersError}
               searchTerm={userSearch}
               setSearchTerm={setUserSearch}
+              roleFilter={userRoleFilter}
+              setRoleFilter={setUserRoleFilter}
               onEdit={(u) => setEditingUser(u)}
             />
           )

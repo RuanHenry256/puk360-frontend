@@ -13,7 +13,8 @@ import React, { useState } from 'react';
 import Button from '../components/Button'; // Ensure this path is correct
 import { api } from '../api/client';
 import '../styles/NWUBackground.css'; // background CSS
-import nwuLogo from '../assets/nwu-logo-round-main.png'; // ✅ actual logo
+import brandLogo from '../assets/puk360-logo-circle.png';
+import groupPhoto from '../assets/group photo login.png';
 
 const LoginScreen = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -104,70 +105,60 @@ const LoginScreen = ({ onLoginSuccess }) => {
       <div className="nwu-background"></div>
 
       {/* Foreground content */}
-      <div className="flex-1 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="flex-1 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="w-full mx-auto max-w-md lg:max-w-6xl">
-          <div className="lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
-            <div className="hidden lg:flex lg:col-span-7 flex-col items-start">
-              <div className="flex items-center space-x-4 mb-6">
-                <img
-                  src={nwuLogo}
-                  alt="NWU logo"
-                  className="w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
-                />
-                <h1 className="text-5xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  PUK360
-                </h1>
-              </div>
-              <p className="text-lg text-black/70 dark:text-white/70 max-w-xl">
-                Discover campus events, join societies, and stay in the loop.
-                
-              </p>
-              <p className="text-lg text-black/70 dark:text-white/70 max-w-xl">
-                Sign in to personalize your feed and RSVP in one click.
-              </p>
-              <ul className="mt-6 space-y-2 text-black/70 dark:text-white/70">
-                <li>• Tailored event recommendations</li>
-                <li>• Quick RSVP and reminders</li>
-                <li>• Host tools for societies and faculties</li>
-              </ul>
-            </div>
-            <div className="lg:col-span-5 w-full max-w-md mx-auto">
-          
-          {/* Header Section */}
-          <div className="flex flex-col items-center mb-10 space-y-5">
-            <div className="flex items-center space-x-4">
+          {/* Header (kept for both views) */}
+          <div className="flex flex-col items-center mb-8 space-y-4">
+            <div className="flex items-center space-x-3">
               {/*  Real logo (slightly larger) */}
               <img
-                src={nwuLogo}
-                alt="NWU logo"
-                className="w-[72px] h-[72px] lg:w-[84px] lg:h-[84px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
+                src={brandLogo}
+                alt="PUK360 logo"
+                className="w-[64px] h-[64px] lg:w-[72px] lg:h-[72px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
               />
               {/* ✅ Punchier title */}
-              <h1 className="text-5xl sm:text-4xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <h1 className="text-4xl sm:text-3xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 PUK360
               </h1>
             </div>
 
-            <h2 className="text-lg sm:text-xl font-semibold text-secondary text-center">
+            <h2 className="text-lg sm:text-xl font-semibold text-secondary text-center lg:hidden">
               {isLogin ? 'Sign in to PUK360' : 'Create your account'}
             </h2>
           </div>
 
-          {/* Card Container – two layers */}
-          <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden shadow-md lg:shadow-xl">
-            {/* BACKDROP LAYER */}
-            <div className="
-              absolute inset-0
-              bg-primary/6 dark:bg-primary-dm/8
-              backdrop-blur-[3px]
-              supports-[backdrop-filter:none]:bg-white/92
-            " />
+          {/* Split card on desktop: left image, right form. On mobile: form only. */}
+          <div className="w-full mx-auto lg:max-w-4xl">
+            <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden shadow-md lg:shadow-xl lg:flex lg:flex-row lg:h-[500px]">
+              {/* BACKDROP LAYER */}
+              <div className="
+                absolute inset-0
+                bg-primary/6 dark:bg-primary-dm/8
+                backdrop-blur-[3px]
+                supports-[backdrop-filter:none]:bg-white/92
+              " />
 
-            {/* CONTENT LAYER */}
-            <div className="relative z-10 p-6 sm:p-8 lg:p-10">
-              {/* Status messages */}
-              {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
-              {success && <div className="mb-4 text-green-600 text-sm">{success}</div>}
+              {/* Left image (desktop only) */}
+              <div className="hidden lg:flex relative z-10 lg:w-1/2 h-full">
+                <img
+                  src={groupPhoto}
+                  alt="Students using PUK360"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+
+              {/* Right: form */}
+              <div className="relative z-10 w-full lg:w-1/2 p-5 sm:p-6 lg:p-8 lg:h-full flex">
+                
+                {/* CONTENT LAYER */}
+                <div className="w-full flex flex-col justify-center">
+                  {/* Desktop-only subheading inside the card */}
+                  <h2 className="hidden lg:block text-lg font-semibold text-secondary text-center mb-5">
+                    {isLogin ? 'Sign in to PUK360' : 'Create your account'}
+                  </h2>
+                  {/* Status messages */}
+                  {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
+                  {success && <div className="mb-4 text-green-600 text-sm">{success}</div>}
               
               {/* Form Section */}
               <div className="flex flex-col space-y-4 mb-6">
@@ -179,7 +170,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                       placeholder="Full name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 
+                      className="w-full px-4 py-2.5 
                                  bg-white dark:bg-surface-dm
                                  border border-primary/20 dark:border-primary-dm/25 
                                  rounded-xl focus:outline-none focus:ring-2 
@@ -197,7 +188,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                     placeholder="Email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 
+                  className="w-full px-4 py-2.5 
                                bg-white dark:bg-surface-dm
                                border border-primary/20 dark:border-primary-dm/25 
                                rounded-xl focus:outline-none focus:ring-2 
@@ -214,7 +205,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                     placeholder="Password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 
+                  className="w-full px-4 py-2.5 
                                bg-white dark:bg-surface-dm
                                border border-primary/20 dark:border-primary-dm/25 
                                rounded-xl focus:outline-none focus:ring-2 
@@ -232,7 +223,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                       placeholder="Confirm Password"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 
+                      className="w-full px-4 py-2.5 
                                  bg-white dark:bg-surface-dm
                                  border border-primary/20 dark:border-primary-dm/25 
                                  rounded-xl focus:outline-none focus:ring-2 
@@ -250,7 +241,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                   onClick={handleSubmit} 
                   variant="primary" 
                   fullWidth={true}
-                  size="large"
+                  size="medium"
                   disabled={loading}
                 >
                   {loading ? (isLogin ? 'Logging in…' : 'Creating…') : (isLogin ? 'Log in' : 'Create account')}
@@ -283,10 +274,10 @@ const LoginScreen = ({ onLoginSuccess }) => {
               {/* Host request entry moved to Profile screen */}
 
               {/* Dev-only bypass buttons removed now that role-based routing is live. */}
+                </div>
+              </div>
             </div>
           </div>
-          </div>
-        </div>
         </div>
       </div>
 
