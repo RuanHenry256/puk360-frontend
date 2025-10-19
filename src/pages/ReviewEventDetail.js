@@ -3,7 +3,7 @@ import Button from "../components/Button";
 import Spinner from "../components/Spinner";
 import TopBar from "../components/TopBar";
 import { api } from "../api/client";
-import { Music, Tag, Building2, CalendarDays, Clock3, MapPin } from 'lucide-react';
+import { Tag, Building2, CalendarDays, Clock3, MapPin } from 'lucide-react';
 
 export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
   const [event, setEvent] = useState(null);
@@ -190,18 +190,12 @@ export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
                 {/* Details rows justified: label left, value right */}
                 <div className="flex items-center">
                   <span className="flex items-center gap-1 text-sm font-semibold text-primary">
-                    <Music size={18} className="text-primary" />
-                    Type
-                  </span>
-                  <span className="ml-4 flex-1 text-right font-medium text-text">{event.type || 'Event'}</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="flex items-center gap-1 text-sm font-semibold text-primary">
                     <Tag size={18} className="text-primary" />
                     Category
                   </span>
-                  <span className="ml-4 flex-1 text-right font-medium text-text">{event.category || 'General'}</span>
+                  <span className="ml-4 flex-1 text-right font-medium text-text">{event.category || 'Event'}</span>
                 </div>
+                
                 <div className="flex items-center">
                   <span className="flex items-center gap-1 text-sm font-semibold text-primary">
                     <Building2 size={18} className="text-primary" />

@@ -34,7 +34,7 @@ export default function EventHostRequest({ onBack }) {
   const validate = () => {
     if (!isAuthed) return "Your session has expired. Please sign in again.";
     if (!form.org_name?.trim()) return "Please enter your organisation name.";
-    if (!form.event_category?.trim()) return "Please select the type of events you do.";
+    if (!form.event_category?.trim()) return "Please select your event category.";
     if (!form.motivation?.trim()) return "Please provide a short motivation for your application.";
     return "";
   };
@@ -123,7 +123,7 @@ export default function EventHostRequest({ onBack }) {
             </label>
 
             <label className="flex flex-col gap-2 text-sm font-medium text-secondary">
-              Type of Events
+              Event Category
               <select
                 name="event_category"
                 value={form.event_category}
@@ -131,10 +131,24 @@ export default function EventHostRequest({ onBack }) {
                 className="rounded-lg border border-secondary/60 px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
               >
                 <option value="">Select a category</option>
-                <option value="Sports">Sports</option>
-                <option value="Music">Music</option>
-                <option value="Art">Art</option>
-                <option value="Community">Community</option>
+                <option>Entertainment</option>
+                <option>Community</option>
+                <option>Music</option>
+                <option>Sports</option>
+                <option>Art</option>
+                <option>Academic</option>
+                <option>Workshop</option>
+                <option>Seminar</option>
+                <option>Career</option>
+                <option>Networking</option>
+                <option>Cultural</option>
+                <option>Technology</option>
+                <option>Health & Wellness</option>
+                <option>Gaming</option>
+                <option>Competition</option>
+                <option>Orientation</option>
+                <option>Charity</option>
+                <option>Other</option>
               </select>
             </label>
 

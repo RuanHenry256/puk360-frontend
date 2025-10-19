@@ -29,7 +29,6 @@ export default function HostEventDetail({ eventId, onClose, canEdit = true }) {
             campus: data.campus || 'Potchefstroom',
             venue: data.venue || '',
             category: data.category || 'Entertainment',
-            type: data.type || 'General Event',
             hostedBy: data.hostedBy || 'NWU Events',
             ImageUrl: data.ImageUrl || '',
           });
@@ -129,7 +128,7 @@ export default function HostEventDetail({ eventId, onClose, canEdit = true }) {
                   </div>
                   <div className="rounded-lg bg-primary/5 p-4">
                     <p className="text-sm text-secondary">Venue</p>
-                    <p className="font-semibold text-primary">{event.venue || '—'}</p>
+                    <p className="font-semibold text-primary">{event.venue || '-'}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 justify-end">
@@ -170,9 +169,6 @@ export default function HostEventDetail({ eventId, onClose, canEdit = true }) {
                   </label>
                   <label className="text-sm text-secondary">Venue
                     <input className="w-full rounded-lg border px-3 py-2" name="venue" value={form.venue} onChange={onChange} />
-                  </label>
-                  <label className="text-sm text-secondary">Type
-                    <input className="w-full rounded-lg border px-3 py-2" name="type" value={form.type} onChange={onChange} />
                   </label>
                   <label className="text-sm text-secondary">Hosted By
                     <input className="w-full rounded-lg border px-3 py-2" name="hostedBy" value={form.hostedBy} onChange={onChange} />

@@ -34,6 +34,21 @@ function App() {
   const [contactSection, setContactSection] = useState(null);
   const [returnView, setReturnView] = useState('events');
 
+  // Determine the main/home view for the current user's role
+  const resolveHomeView = (u) => {
+    try {
+      const roles = (u?.roles || []).map((r) =>
+        typeof r === 'string' ? r.toLowerCase() : r
+      );
+      const has = (name, id) => roles.includes(name) || roles.includes(id);
+      if (has('admin', 3)) return 'admin';
+      if (has('host', 2)) return 'host';
+      return 'events';
+    } catch (_e) {
+      return 'events';
+    }
+  };
+
   const handleLoginSuccess = () => {
     // Route to the correct workspace based on roles
     try {
@@ -171,11 +186,19 @@ function App() {
       )}
 
       {view === 'legal' && (
-        <Legal section={legalSection || 'terms'} onBack={() => setView(returnView || 'events')} onShowProfile={handleShowProfile} />
+        <Legal
+          section={legalSection || 'terms'}
+          onBack={() => setView(resolveHomeView(user))}
+          onShowProfile={handleShowProfile}
+        />
       )}
 
       {view === 'contact' && (
-        <Contact section={contactSection} onBack={() => setView(returnView || 'events')} onShowProfile={handleShowProfile} />
+        <Contact
+          section={contactSection}
+          onBack={() => setView(resolveHomeView(user))}
+          onShowProfile={handleShowProfile}
+        />
       )}
 
       {view !== 'login' && <Footer onOpenLegal={openLegal} onOpenContact={openContact} />}

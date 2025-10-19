@@ -101,6 +101,17 @@ export const api = {
       return Array.isArray(res?.data) ? res.data : [];
     },
   },
+  uploads: {
+    // Request a presigned URL for image upload. Backend should respond with
+    // { uploadUrl, publicUrl } where uploadUrl is the PUT URL and publicUrl is the eventual CDN/S3 URL.
+    presignImage: async (filename, contentType, token) => {
+      return http('/api/uploads/presign', {
+        method: 'POST',
+        body: { filename, contentType, folder: 'events' },
+        token,
+      });
+    },
+  },
   admin: {
     listUsers: async (q = '', token) => {
       const qp = q && String(q).trim().length ? `?q=${encodeURIComponent(q)}` : '';

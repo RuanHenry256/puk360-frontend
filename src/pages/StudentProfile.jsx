@@ -122,7 +122,7 @@ const StudentProfile = ({
           )}
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6">
         <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm lg:col-span-1">
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-3">

@@ -209,28 +209,48 @@ export default function HostMain({ onSignOut }) {
           Your host account is not active. You can view analytics and the feed, but creating or editing events is disabled.
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-secondary/40 bg-white p-3 shadow-sm">
-        <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search by title" className="flex-1 rounded border px-3 py-2" />
-        <select value={range} onChange={(e)=>setRange(e.target.value)} className="rounded border px-2 py-2">
-          <option value="upcoming">Upcoming</option>
-          <option value="past">Past</option>
-          <option value="all">All</option>
-        </select>
-        <select value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="rounded border px-2 py-2">
-          <option value="">Any status</option>
-          <option>Scheduled</option>
-          <option>Cancelled</option>
-          <option>Completed</option>
-        </select>
-        {isHostActive && (
-          <button
-            type="button"
-            onClick={() => setCreating(true)}
-            className="ml-auto hidden rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 lg:inline-flex"
-          >
-            + Create Event
-          </button>
-        )}
+      <div className="rounded-2xl border border-secondary/40 bg-white p-3 shadow-sm">
+        <div className="mb-2">
+          <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search by title" className="w-full rounded border px-3 py-2" />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-1 min-w-[300px] overflow-hidden rounded-lg border border-secondary/40">
+            {['upcoming','past','all'].map((r, idx) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRange(r)}
+                className={`flex-1 px-3 py-2 text-sm text-center ${range===r ? 'bg-primary text-white' : 'bg-white text-secondary hover:bg-primary/5'} ${idx < 2 ? 'border-r border-secondary/30' : ''}`}
+              >
+                {r.charAt(0).toUpperCase()+r.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {['','Scheduled','Cancelled','Completed'].map((s) => (
+              <button
+                key={s || 'all'}
+                type="button"
+                onClick={() => setStatusFilter(s)}
+                className={`rounded-full border px-3 py-1 text-sm ${statusFilter===s ? 'border-primary text-primary bg-primary/5' : 'border-secondary/40 text-secondary hover:bg-primary/5'}`}
+              >
+                {s || 'All statuses'}
+              </button>
+            ))}
+          </div>
+
+          {isHostActive && (
+            <button
+              type="button"
+              onClick={() => setCreating(true)}
+              className="ml-auto hidden rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 lg:inline-flex"
+            >
+              + Create Event
+            </button>
+          )}
+        </div>
       </div>
       {loading && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-secondary">Loading…</div>}
       {error && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-red-600">{error}</div>}
@@ -252,10 +272,10 @@ export default function HostMain({ onSignOut }) {
             <p className="text-sm text-secondary">{new Date((typeof e.Date === 'string' ? e.Date : e.Date?.toString()) + 'T00:00:00').toLocaleDateString('en-ZA', { year:'numeric', month:'short', day:'2-digit' })} • {e.venue || e.campus}</p>
             <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-xs text-secondary">{e.Status || 'Scheduled'}</span>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-col sm:flex-row sm:items-start">
             <button
               disabled={!isHostActive}
-              className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary disabled:opacity-50"
+              className="w-full sm:w-auto rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary disabled:opacity-50"
               onClick={(ev)=>{ ev.stopPropagation(); duplicateEvent(e); }}
               onKeyDown={(ev)=>ev.stopPropagation()}
             >
@@ -263,19 +283,11 @@ export default function HostMain({ onSignOut }) {
             </button>
             <button
               disabled={!isHostActive}
-              className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary disabled:opacity-50"
+              className="w-full sm:w-auto rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary disabled:opacity-50"
               onClick={(ev)=>{ ev.stopPropagation(); updateStatus(e,'Cancelled'); }}
               onKeyDown={(ev)=>ev.stopPropagation()}
             >
               Cancel
-            </button>
-            <button
-              disabled={!isHostActive}
-              className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
-              onClick={(ev)=>{ ev.stopPropagation(); deleteEvent(e); }}
-              onKeyDown={(ev)=>ev.stopPropagation()}
-            >
-              Delete
             </button>
           </div>
         </div>
@@ -295,7 +307,6 @@ export default function HostMain({ onSignOut }) {
         campus: e.campus,
         venue: e.venue,
         category: e.category,
-        type: e.type,
         hostedBy: e.hostedBy,
         ImageUrl: e.ImageUrl,
         Host_User_ID: user?.id,
