@@ -164,10 +164,11 @@ const LoginScreen = ({ onLoginSuccess }) => {
               <div className="flex flex-col space-y-4 mb-6">
                 {!isLogin && (
                   <div className="flex flex-col">
+                    <label htmlFor="name" className="text-sm font-medium text-secondary mb-1">Full name</label>
                     <input
+                      id="name"
                       type="text"
                       name="name"
-                      placeholder="Full name"
                       value={formData.name}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2.5 
@@ -175,17 +176,17 @@ const LoginScreen = ({ onLoginSuccess }) => {
                                  border border-primary/20 dark:border-primary-dm/25 
                                  rounded-xl focus:outline-none focus:ring-2 
                                  focus:ring-primary/40 dark:focus:ring-primary-dm/40 
-                                 placeholder-black/40 dark:placeholder-white/40 
                                  transition duration-200"
                     />
                   </div>
                 )}
 
                 <div className="flex flex-col">
+                  <label htmlFor="email" className="text-sm font-medium text-secondary mb-1">Email</label>
                   <input
+                    id="email"
                     type="email"
                     name="email"
-                    placeholder="Email"
                     value={formData.email}
                     onChange={handleInputChange}
                   className="w-full px-4 py-2.5 
@@ -193,16 +194,16 @@ const LoginScreen = ({ onLoginSuccess }) => {
                                border border-primary/20 dark:border-primary-dm/25 
                                rounded-xl focus:outline-none focus:ring-2 
                                focus:ring-primary/40 dark:focus:ring-primary-dm/40 
-                               placeholder-black/40 dark:placeholder-white/40 
                                transition duration-200"
                   />
                 </div>
 
                 <div className="flex flex-col">
+                  <label htmlFor="password" className="text-sm font-medium text-secondary mb-1">Password</label>
                   <input
+                    id="password"
                     type="password"
                     name="password"
-                    placeholder="Password"
                     value={formData.password}
                     onChange={handleInputChange}
                   className="w-full px-4 py-2.5 
@@ -210,17 +211,17 @@ const LoginScreen = ({ onLoginSuccess }) => {
                                border border-primary/20 dark:border-primary-dm/25 
                                rounded-xl focus:outline-none focus:ring-2 
                                focus:ring-primary/40 dark:focus:ring-primary-dm/40 
-                               placeholder-black/40 dark:placeholder-white/40 
                                transition duration-200"
                   />
                 </div>
 
                 {!isLogin && (
                   <div className="flex flex-col">
+                    <label htmlFor="confirmPassword" className="text-sm font-medium text-secondary mb-1">Confirm password</label>
                     <input
+                      id="confirmPassword"
                       type="password"
                       name="confirmPassword"
-                      placeholder="Confirm Password"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2.5 
@@ -228,7 +229,6 @@ const LoginScreen = ({ onLoginSuccess }) => {
                                  border border-primary/20 dark:border-primary-dm/25 
                                  rounded-xl focus:outline-none focus:ring-2 
                                  focus:ring-primary/40 dark:focus:ring-primary-dm/40 
-                                 placeholder-black/40 dark:placeholder-white/40 
                                  transition duration-200"
                     />
                   </div>
