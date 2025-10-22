@@ -8,6 +8,9 @@ export default function AdminUserEdit({ userId, onBack }) {
   const [roles, setRoles] = useState([]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
   const [selectedRoleIds, setSelectedRoleIds] = useState(new Set());
   const [hostStatus, setHostStatus] = useState(null);
 
@@ -86,7 +89,18 @@ export default function AdminUserEdit({ userId, onBack }) {
 
   async function save() {
     try {
+      if (newPassword && newPassword.length < 6) {
+        alert('Password must be at least 6 characters.');
+        return;
+      }
+      if (newPassword || confirmPassword) {
+        if (newPassword !== confirmPassword) {
+          alert('Passwords do not match.');
+          return;
+        }
+      }
       const body = { name, email, roles: Array.from(selectedRoleIds) };
+      if (newPassword) body.password = newPassword;
       const updated = await api.admin.updateUser(userId, body, token);
       // refresh host status if host role toggled
       if (selectedRoleIds.has(2)) {
@@ -133,6 +147,19 @@ export default function AdminUserEdit({ userId, onBack }) {
             <div>
               <label className="text-sm text-secondary">Email</label>
               <input className="mt-1 w-full rounded border p-2" value={email} onChange={(e)=>setEmail(e.target.value)} />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <label className="text-sm text-secondary">New Password</label>
+                <div className="mt-1 flex">
+                  <input type={showPw ? 'text' : 'password'} className="w-full rounded-l border p-2" value={newPassword} onChange={(e)=>setNewPassword(e.target.value)} placeholder="Leave blank to keep" />
+                  <button type="button" onClick={()=>setShowPw(v=>!v)} className="rounded-r border border-l-0 px-3 text-sm text-secondary hover:bg-secondary/10">{showPw ? 'Hide' : 'Show'}</button>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-secondary">Confirm Password</label>
+                <input type={showPw ? 'text' : 'password'} className="mt-1 w-full rounded border p-2" value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)} placeholder="Repeat new password" />
+              </div>
             </div>
             <div>
               <label className="text-sm text-secondary">Roles</label>

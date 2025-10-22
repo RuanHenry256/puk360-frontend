@@ -21,12 +21,14 @@ npm start
 - `src/pages/HostMain.jsx` — host workspace (Overview, My Events, Feed, Account) with left sidebar.
 - `src/pages/HostCreateEvent.jsx` — create event overlay (free‑text `venue`, `ImageUrl`).
 - `src/pages/HostEventDetail.jsx` — editable event detail overlay (Save/Duplicate/Delete/Status) honoring host active status.
-- `src/pages/AdminMainDash.jsx` – admin dashboard with:
-  - Overview metrics (Engagement, Event Analytics, User Insights, Feedback & Reviews, System Health) and simple CSS charts.
-  - Events tab mirroring Host “My Events” but over all events (search/filter, detail overlay, duplicate/cancel/delete, create).
+- `src/pages/AdminMainDash.jsx` � admin dashboard with:
+  - Two-column Overview metrics (Engagement, Event Analytics, User Insights, Feedback & Reviews, System Health).
+  - Victory charts for events-per-month and user growth.
+  - Events tab mirroring Host �My Events� but over all events (search/filter, detail overlay, duplicate/cancel/delete, create).
   - Host Applications review (grid + detail modal with approve/reject + comment).
-  - Users management (search, filter by role, edit user, delete, reactivate host). On mobile, emails shorten for layout.
-- `src/components/Sidebar.jsx` — responsive sidebar; mobile drawer + desktop rail.
-- `src/api/client.js` — API helpers (`events`, `hosts` analytics, `admin` host applications).
-
+  - Users management (search, filter by role, edit user, delete, reactivate host, reset password). On mobile, emails shorten for layout.
+  - Logs tab (read-only terminal view) from `/api/admin/logs`.
+  - Profile tab to edit the current admin profile (name/email).
+- `src/components/Sidebar.jsx` � hamburger dropdown menu (animated) used across desktop and mobile. Legacy sticky rail available via `embed` prop.
+- `src/api/client.js` � API helpers (`events`, `hosts` analytics, admin users/roles/host applications/dashboard/logs).
 For a deeper walk‑through see `docs/FRONTEND_GUIDE.md`.

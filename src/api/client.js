@@ -144,6 +144,13 @@ export const api = {
       const res = await http('/api/admin/dashboard', { method: 'GET', token });
       return res?.data || { counts: {}, recent: {} };
     },
+    auditLogs: async (limit = 500, token, q = '') => {
+      const qs = new URLSearchParams();
+      if (limit) qs.set('limit', String(limit));
+      if (q && String(q).trim()) qs.set('q', String(q).trim());
+      const res = await http(`/api/admin/logs${qs.toString() ? `?${qs.toString()}` : ''}`, { method: 'GET', token });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
     updateUser: async (id, payload, token) => {
       const res = await http(`/api/admin/users/${id}`, { method: 'PATCH', body: payload, token });
       return res?.data || null;

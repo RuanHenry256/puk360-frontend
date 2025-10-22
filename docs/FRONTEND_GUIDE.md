@@ -22,7 +22,9 @@ This guide lists the major UI components and flows implemented.
     - Desktop: “+ Create Event” button on the right of the filter bar
     - Mobile: floating `+` FAB at the bottom
   - Account editor mirrors student UX; banner shows Active/Inactive status
-  - Uses `Sidebar.jsx` for navigation (desktop rail + mobile drawer)
+  - Uses `Sidebar.jsx` for navigation. On all breakpoints we now use a hamburger-triggered dropdown rather than a full-height rail:
+    - Desktop and mobile: top-left hamburger opens a floating dropdown containing all nav items and the Sign out action.
+    - The dropdown animates from under the navbar and closes with a fade/scale.
 - `src/pages/HostEventDetail.jsx`
   - View mode with status selector, Edit toggles inline form
   - Actions: Save, Duplicate, Delete, Update Status
@@ -30,29 +32,35 @@ This guide lists the major UI components and flows implemented.
 
 ## Admin
 - `src/pages/AdminMainDash.jsx`
-  - Overview dashboard with metrics:
+  - Overview dashboard with metrics (two-column layout on desktop):
     - Engagement: Attended (Total, This Month), Avg Attendance/Event, Active Users (7d), Most Popular Event.
     - Event Analytics: Upcoming, Cancelled, Category breakdown, Top venues.
     - User Insights: New users (This Month), Verified vs Pending Hosts, Avg Host Rating, Most Active User.
     - Feedback & Reviews: Total Reviews, Avg Event Rating, Most Reviewed Event, recent snippets.
     - System Health: DB connection, Last backup, API uptime (past 24h), Storage used.
-    - Visuals: CSS‑only bar chart (events per month) and line chart (user growth).
+    - Charts: Victory (SVG) bar and line charts (`victory` package). No custom CSS bars anymore.
   - Events: Admins can search/filter all events, open details, duplicate/cancel/delete, and create events — mirrors the Host “My Events” UX but operates on all events.
   - Host Applications: grid + detail modal with Approve/Reject and reviewer comment.
-  - Users: searchable list with role filter (All/Student/Host/Admin), color‑coded badges; dedicated edit screen (edit name/email/roles, delete, reactivate host).
-  - Uses `Sidebar.jsx` for navigation.
+  - Users: searchable list with role filter (All/Student/Host/Admin), color‑coded badges; dedicated edit screen (edit name/email/roles, delete, reactivate host, reset password).
+    - Admins can set a new password for a user. Leave blank to keep existing.
+  - Logs: new read‑only tab that shows audit logs from the backend (black terminal‑style viewer with search + refresh).
+  - Profile: new tab allowing the currently‑signed‑in admin to edit their own name/email.
+  - Uses `Sidebar.jsx` dropdown navigation.
 
 ## Shared components
 - `src/components/Sidebar.jsx`
-  - Reusable responsive menu for Host/Admin
-  - Props: `{ open, onClose, items, activeId, onSelect, onSignOut }`
-  - Visuals: “detached card” rail on desktop (under the header), drawer + overlay on mobile
+  - Reusable responsive menu for Host/Admin.
+  - Modes:
+    - `dropdown` (current): floating card under the navbar; used on all breakpoints.
+    - `embed` (legacy): sticky rail for traditional desktop layouts.
+  - Props: `{ open, onClose, items, activeId, onSelect, onSignOut, dropdown, embed }`.
+  - Animation: fade/scale/slide from the navbar, with a small gap below the top bar.
 - `src/components/Spinner.jsx`
   - Simple circular loader used across the app (example: `<Spinner size={40} />`)
 - `src/api/client.js`
   - Event helpers: `api.events.list/get/create/delete/updateStatus`.
   - Host analytics: `api.hosts.stats/topEvents/categoryMix/rsvpTrend/recentReviews`.
-  - Admin: `api.admin.users/*`, `api.admin.host-applications/*`, `api.admin.dashboard`.
+  - Admin: `api.admin.users/*`, `api.admin.roles`, `api.admin.dashboard`, `api.admin.host-applications/*`, `api.admin.auditLogs(limit, token, q)`.
 
 ## Icons
 - We use `lucide-react` for icons (install with `npm install lucide-react`).
@@ -65,11 +73,12 @@ This guide lists the major UI components and flows implemented.
 
 ---
 
-## Admin: User Management (new)
+## Admin: User Management (updated)
 - Users list now loads from the backend and supports search.
   - Endpoint: `GET /api/admin/users?q=<term>` (Bearer token required)
 - Tapping a user opens a dedicated edit screen.
   - Edit: name, email, roles (IDs: `1=Student`, `2=Host`, `3=Admin`).
+  - Reset password: optional new/confirm password fields. If provided, password is updated by the backend (SQL SHA‑256 hash).
   - Delete user.
   - If Host role is selected and the host account is inactive, a Reactivate button appears (calls `POST /api/admin/hosts/:id/reactivate`).
 - Overview tile “Total Users” uses the loaded list count instead of a hardcoded number.
@@ -92,9 +101,11 @@ Notes
   - “+ Create Event” opens `HostCreateEvent` overlay (admins can create new events).
   - Lists from `api.events.list({})` (no host filter).
 
-## Admin: Overview metrics (new)
+## Admin: Overview metrics (updated)
 - Reads from `GET /api/admin/dashboard` and renders the sections above.
-- The UI is defensive: missing fields default to `0`/`—`. Category breakdown accepts either object maps or arrays of `{category, count}`.
+- The UI merges server metrics with fallbacks derived from events/users so tiles never display misleading zeros.
+- Category breakdown accepts either object maps or arrays of `{category, count}`.
+- “New users (This Month)” and “Most active user” prefer server data which now draws from audit logs (see backend docs).
 
 ## Host Overview accuracy (new)
 - Overview stats refresh when landing on the Overview tab and after creating an event, so “Upcoming Events” reflects new events.

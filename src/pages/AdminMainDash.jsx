@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { VictoryBar, VictoryChart, VictoryAxis, VictoryTheme, VictoryLine } from 'victory';
 import AdminUserEdit from './AdminUserEdit';
 import HostCreateEvent from './HostCreateEvent';
 import HostEventDetail from './HostEventDetail';
 import Sidebar from '../components/Sidebar';
-import { Home, CalendarDays, ClipboardList, User2 } from 'lucide-react';
+import { Home, CalendarDays, ClipboardList, User2, FileText } from 'lucide-react';
+import Button from '../components/Button';
 import { api } from '../api/client';
 
 function StatTile({ label, value, sub }) {
@@ -17,50 +19,190 @@ function StatTile({ label, value, sub }) {
 }
 
 function BarsChart({ data = [], labels = [] }) {
-  const max = Math.max(1, ...data);
+  const points = (labels.length ? labels : data.map((_, i) => i + 1)).map((name, i) => ({ name, value: Number(data[i] || 0) }));
   return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      <div className="flex h-28 items-end gap-2">
-        {data.map((v, i) => (
-          <div key={i} className="flex-1">
-            <div
-              className="w-full rounded-t bg-primary/70"
-              style={{ height: `${(v / max) * 100}%` }}
-              title={`${labels[i] || i}: ${v}`}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="flex justify-between text-xs text-secondary">
-        {(labels.length ? labels : data.map((_, i) => i + 1)).map((l, i) => (
-          <span key={i}>{l}</span>
-        ))}
-      </div>
+    <div className="h-56">
+      <VictoryChart theme={VictoryTheme.material} domainPadding={10} padding={{ top: 10, bottom: 40, left: 50, right: 10 }}>
+        <VictoryAxis style={{ tickLabels: { fontSize: 8, angle: 0 } }} tickFormat={(t) => String(t)} />
+        <VictoryAxis dependentAxis style={{ tickLabels: { fontSize: 8 } }} />
+        <VictoryBar data={points} x="name" y="value" style={{ data: { fill: '#6b3fa0' } }} />
+      </VictoryChart>
     </div>
   );
 }
 
 function LineChart({ data = [], labels = [] }) {
-  const max = Math.max(1, ...data);
+  const points = (labels.length ? labels : data.map((_, i) => i + 1)).map((name, i) => ({ name, value: Number(data[i] || 0) }));
   return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      <div className="flex h-28 items-end gap-1">
-        {data.map((v, i) => (
-          <div
-            key={i}
-            className="h-full w-full max-w-[6px] rounded bg-gradient-to-t from-primary/20 to-primary"
-            style={{ height: `${(v / max) * 100}%` }}
-            title={`${labels[i] || i}: ${v}`}
-          />
-        ))}
-      </div>
-      <div className="flex justify-between text-xs text-secondary">
-        {(labels.length ? labels : data.map((_, i) => i + 1)).map((l, i) => (
-          <span key={i}>{l}</span>
-        ))}
-      </div>
+    <div className="h-56">
+      <VictoryChart theme={VictoryTheme.material} padding={{ top: 10, bottom: 40, left: 50, right: 10 }}>
+        <VictoryAxis style={{ tickLabels: { fontSize: 8 } }} tickFormat={(t) => String(t)} />
+        <VictoryAxis dependentAxis style={{ tickLabels: { fontSize: 8 } }} />
+        <VictoryLine data={points} x="name" y="value" style={{ data: { stroke: '#6b3fa0' } }} />
+      </VictoryChart>
     </div>
   );
+}
+
+// Compute fallback/augmented metrics from raw events and users
+function buildAugmentedMetrics(raw = {}, events = [], users = []) {
+  const safeNum = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
+  const byMonthLast12 = () => {
+    const now = new Date();
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const dt = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ key: `${dt.getFullYear()}-${dt.getMonth()}`, label: dt.toLocaleString(undefined, { month: 'short' }) });
+    }
+    return months;
+  };
+
+  // Events per month (last 12 months)
+  const months = byMonthLast12();
+  const eventsPerMonth = months.map(({ key }) => {
+    const [y, m] = key.split('-').map(Number);
+    return events.filter((e) => {
+      const d = new Date(typeof e.Date === 'string' ? e.Date : e.Date?.toString());
+      return d.getFullYear() === y && d.getMonth() === m;
+    }).length;
+  });
+
+  // User growth: monthly cumulative registrations if any timestamp; else linear interpolation
+  const pickDate = (u) => u?.createdAt || u?.CreatedAt || u?.created_at || u?.Register_Date || u?.registeredAt || u?.registered_at || u?.created || null;
+  let monthlyAdds = months.map(() => 0);
+  let haveDates = false;
+  users.forEach((u) => {
+    const ds = pickDate(u);
+    const d = ds ? new Date(ds) : null;
+    if (d && !isNaN(d)) {
+      haveDates = true;
+      const idx = months.findIndex(({ key }) => {
+        const [y, m] = key.split('-').map(Number);
+        return d.getFullYear() === y && d.getMonth() === m;
+      });
+      if (idx >= 0) monthlyAdds[idx] += 1;
+    }
+  });
+  if (!haveDates) {
+    const total = users.length;
+    const step = total / months.length;
+    monthlyAdds = months.map((_, i) => Math.round((i + 1) * step) - Math.round(i * step));
+  }
+  const userGrowth = monthlyAdds.reduce((acc, v, i) => { acc.push((acc[i - 1] || 0) + v); return acc; }, []);
+
+  // Event analytics from event list
+  const status = (s) => String(s || '').toLowerCase();
+  const upcomingCount = events.filter((e) => status(e.Status) !== 'cancelled').length;
+  const cancelledCount = events.filter((e) => status(e.Status) === 'cancelled').length;
+
+  const catCounts = {};
+  events.forEach((e) => {
+    const c = (e.category || e.Category || 'Unknown');
+    catCounts[c] = (catCounts[c] || 0) + 1;
+  });
+  const categoryBreakdown = Object.entries(catCounts).map(([name, count]) => ({ name, count }));
+
+  const venueCounts = {};
+  events.forEach((e) => { const v = (e.venue || e.Venue || 'Unknown'); venueCounts[v] = (venueCounts[v] || 0) + 1; });
+  const topVenues = Object.entries(venueCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([name]) => name);
+
+  // ---- User insights derived from users + events -------------------------
+  const getRoles = (u) => {
+    const r = u?.Roles || u?.roles || [];
+    if (Array.isArray(r)) return r;
+    if (typeof r === 'string') return [r];
+    return [];
+  };
+  const roleHasHost = (u) => {
+    const rr = getRoles(u);
+    return rr.some((val) => {
+      if (typeof val === 'number') return Number(val) === 2; // 2 = Host (fallback id)
+      const s = String(val?.Role_Name ?? val?.name ?? val).toLowerCase();
+      return s.includes('host');
+    });
+  };
+  const hostIsActive = (u) => {
+    const hs = u?.hostStatus || u?.HostStatus || u?.host_status || null;
+    if (!hs) return null;
+    const isActive = hs.Is_Active ?? hs.isActive ?? hs.active ?? hs.Active;
+    return Number(isActive) === 1 || isActive === true;
+  };
+
+  const now = new Date();
+  const isSameMonth = (d) => d && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  const userDate = (u) => {
+    const ds = u?.createdAt || u?.CreatedAt || u?.created_at || u?.Register_Date || u?.registeredAt || u?.registered_at || null;
+    return ds ? new Date(ds) : null;
+  };
+
+  const newThisMonth = users.reduce((acc, u) => acc + (isSameMonth(userDate(u)) ? 1 : 0), 0);
+  let verifiedHosts = 0; let pendingHosts = 0;
+  users.forEach((u) => {
+    if (roleHasHost(u)) {
+      const act = hostIsActive(u);
+      if (act === null) { verifiedHosts += 1; }
+      else if (act) verifiedHosts += 1; else pendingHosts += 1;
+    }
+  });
+
+  // Most active user by events hosted — restrict to actual Host users
+  const hostCountById = {};
+  events.forEach((e) => {
+    const id = e.Host_User_ID || e.hostUserId || e.host_user_id || null;
+    if (id) hostCountById[id] = (hostCountById[id] || 0) + 1;
+  });
+  let mostActiveUser = null;
+  Object.entries(hostCountById).forEach(([id, cnt]) => {
+    const u = users.find((x) => String(x.User_ID || x.id) === String(id));
+    if (!u) return;
+    if (!roleHasHost(u)) return; // only consider real hosts
+    const name = u.Name || u.name || 'Host';
+    if (!mostActiveUser || cnt > mostActiveUser.score) mostActiveUser = { name, score: cnt };
+  });
+  // Fallback: map hostedBy name to a known Host user if possible only
+  if (!mostActiveUser) {
+    const byName = {};
+    events.forEach((e) => { const n = e.hostedBy || e.Hosted_By || null; if (n) byName[String(n).toLowerCase()] = (byName[String(n).toLowerCase()] || 0) + 1; });
+    users.filter(roleHasHost).forEach((u) => {
+      const nm = String(u.Name || u.name || '').toLowerCase();
+      const cnt = byName[nm] || 0;
+      if (cnt > 0 && (!mostActiveUser || cnt > mostActiveUser.score)) {
+        mostActiveUser = { name: u.Name || u.name, score: cnt };
+      }
+    });
+  }
+
+  // Merge with backend data if present
+  const m = raw && typeof raw === 'object' ? raw : {};
+  const merged = {
+    ...m,
+    charts: {
+      eventsPerMonth: Array.isArray(m?.charts?.eventsPerMonth) ? m.charts.eventsPerMonth : eventsPerMonth,
+      userGrowth: Array.isArray(m?.charts?.userGrowth) ? m.charts.userGrowth : userGrowth,
+    },
+    events: {
+      ...(m.events || {}),
+      upcomingCount: safeNum(m?.events?.upcomingCount, upcomingCount),
+      cancelledCount: safeNum(m?.events?.cancelledCount, cancelledCount),
+      categoryBreakdown: m?.events?.categoryBreakdown || categoryBreakdown,
+      topVenues: m?.events?.topVenues || topVenues,
+    },
+    users: {
+      ...(m.users || {}),
+      newThisMonth: safeNum(m?.users?.newThisMonth, newThisMonth),
+      verifiedHosts: safeNum(m?.users?.verifiedHosts, verifiedHosts),
+      pendingHosts: safeNum(m?.users?.pendingHosts, pendingHosts),
+      avgHostRating: safeNum(m?.users?.avgHostRating, m?.reviews?.averageRating ?? 0),
+      mostActiveUser: m?.users?.mostActiveUser || mostActiveUser || null,
+    },
+    engagement: m.engagement || {},
+    reviews: {
+      ...(m.reviews || {}),
+      totalReviews: safeNum(m?.reviews?.totalReviews, m?.counts?.totalReviews ?? 0),
+    },
+    system: m.system || {},
+  };
+  return merged;
 }
 
 function OverviewPage({ metrics = {} }) {
@@ -93,7 +235,7 @@ function OverviewPage({ metrics = {} }) {
     : [];
 
   return (
-    <div className="space-y-6">
+    <div className="grid gap-6 lg:grid-cols-2">
       <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
         <h3 className="mb-4 text-xl font-semibold text-primary">Engagement</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -182,14 +324,104 @@ function OverviewPage({ metrics = {} }) {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-xl font-semibold text-primary">Events Per Month</h3>
-          <BarsChart data={eventsPerMonth} labels={monthLabels} />
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-xl font-semibold text-primary">Events Per Month</h3>
+        <BarsChart data={eventsPerMonth} labels={monthLabels} />
+      </div>
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-xl font-semibold text-primary">User Growth</h3>
+        <LineChart data={userGrowth} labels={monthLabels} />
+      </div>
+    </div>
+  );
+}
+
+function LogsPage() {
+  const [lines, setLines] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [q, setQ] = useState('');
+
+  async function load() {
+    try {
+      setLoading(true); setError('');
+      const token = localStorage.getItem('token');
+      const logs = await api.admin.auditLogs(500, token, q);
+      const text = logs.map((l) => {
+        const t = l.createdAt ? new Date(l.createdAt).toLocaleString() : '';
+        const who = l.userName ? `${l.userName} <${l.userEmail||''}>` : (l.userId ? `User #${l.userId}` : 'System');
+        const tgt = l.targetType ? `${l.targetType}${l.targetId?`#${l.targetId}`:''}` : '';
+        let meta = '';
+        try { meta = l.metadata ? JSON.stringify(JSON.parse(l.metadata), null, 2) : ''; }
+        catch { meta = l.metadata || ''; }
+        return `[${t}] ${l.eventType}${tgt?` (${tgt})`:''} — ${who}${meta?`\n${meta}`:''}`;
+      }).join('\n\n');
+      setLines(text || 'No logs.');
+    } catch (e) {
+      setError(e.message || 'Failed to load logs');
+      setLines('');
+    } finally { setLoading(false); }
+  }
+
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          <input className="rounded border px-3 py-1 text-sm" placeholder="Search logs" value={q} onChange={(e)=>setQ(e.target.value)} />
+          <button className="rounded bg-primary px-3 py-1 text-sm font-semibold text-white hover:opacity-90" onClick={load} disabled={loading}>{loading?'Loading…':'Refresh'}</button>
         </div>
-        <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-xl font-semibold text-primary">User Growth</h3>
-          <LineChart data={userGrowth} labels={monthLabels} />
+      </div>
+      {error && <div className="rounded border border-red-300 bg-red-50 p-2 text-sm text-red-700">{error}</div>}
+      <textarea readOnly spellCheck={false} className="h-[70vh] w-full resize-none rounded-lg bg-black p-4 font-mono text-sm text-green-200" value={lines} />
+    </div>
+  );
+}
+
+function AdminProfile({ onUpdated }) {
+  const [user, setUser] = useState(() => {
+    try { const raw = localStorage.getItem('user'); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
+  const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '' });
+  const [status, setStatus] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { setForm({ name: user?.name || '', email: user?.email || '' }); }, [user?.name, user?.email]);
+
+  const isDirty = (form.name || '').trim() !== (user?.name || '') || (form.email || '').trim() !== (user?.email || '');
+  const onChange = (e) => { setForm((p) => ({ ...p, [e.target.name]: e.target.value })); setStatus(''); setError(''); };
+  const onSave = async () => {
+    try {
+      setSaving(true); setError(''); setStatus('');
+      const token = localStorage.getItem('token');
+      const { user: updated } = await api.updateProfile({ name: form.name.trim(), email: form.email.trim() }, token);
+      const next = { ...(user || {}), ...updated };
+      localStorage.setItem('user', JSON.stringify(next));
+      setUser(next);
+      onUpdated?.(next);
+      setStatus('Profile updated.');
+    } catch (e) { setError(e.message || 'Failed to update profile'); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-xl font-semibold text-primary">Your Details</h3>
+        {(status || error) && <p className={`text-sm ${error ? 'text-red-600' : 'text-green-700'}`}>{error || status}</p>}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="text-sm text-secondary">Name
+            <input className="mt-1 w-full rounded-lg border px-3 py-2" name="name" value={form.name} onChange={onChange} />
+          </label>
+          <label className="text-sm text-secondary">Email
+            <input type="email" className="mt-1 w-full rounded-lg border px-3 py-2" name="email" value={form.email} onChange={onChange} />
+          </label>
+        </div>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setForm({ name: user?.name || '', email: user?.email || '' })}>Reset</Button>
+          <Button variant="primary" onClick={onSave} disabled={!isDirty || saving}>{saving ? 'Saving…' : 'Save changes'}</Button>
         </div>
       </div>
     </div>
@@ -492,11 +724,16 @@ export default function AdminDashboard({ onSignOut }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [menuOpen, setMenuOpen] = useState(false);
   const [metrics, setMetrics] = useState({ counts: {}, recent: {} });
+  const [currentUser, setCurrentUser] = useState(() => {
+    try { const raw = localStorage.getItem('user'); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
   const [apps, setApps] = useState([]);
   const [appsLoading, setAppsLoading] = useState(false);
   const [appsError, setAppsError] = useState('');
   const [selectedApp, setSelectedApp] = useState(null);
   const [users, setUsers] = useState([]);
+  // Events for analytics/overview (separate from EventsPage local state)
+  const [allEvents, setAllEvents] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState('');
   const [userSearch, setUserSearch] = useState('');
@@ -553,8 +790,47 @@ export default function AdminDashboard({ onSignOut }) {
   async function loadStats() {
     try {
       const token = localStorage.getItem('token');
-      const data = await api.admin.dashboard(token);
-      setMetrics(data || { counts: {}, recent: {} });
+      const [data, usersList, eventsList] = await Promise.all([
+        api.admin.dashboard(token).catch(() => ({})),
+        users.length ? Promise.resolve(users) : api.admin.listUsers('', token).catch(() => []),
+        allEvents.length ? Promise.resolve(allEvents) : api.events.list({}).catch(() => []),
+      ]);
+      if (Array.isArray(usersList) && users.length === 0) setUsers(usersList);
+      if (Array.isArray(eventsList) && allEvents.length === 0) setAllEvents(eventsList);
+      let merged = buildAugmentedMetrics(data, Array.isArray(eventsList) ? eventsList : allEvents, Array.isArray(usersList) ? usersList : users);
+
+      // If reviews look missing, aggregate from event review endpoints (best‑effort)
+      const needsReviewAgg = !merged?.reviews || (!Number(merged?.reviews?.totalReviews) && (Array.isArray(eventsList) ? eventsList : allEvents).length <= 50);
+      if (needsReviewAgg) {
+        try {
+          const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+          const evs = Array.isArray(eventsList) ? eventsList : allEvents;
+          let total = 0; let sumRating = 0; let mostCount = 0; let mostTitle = '';
+          for (const e of evs) {
+            const id = e.Event_ID || e.id;
+            if (!id) continue;
+            const res = await fetch(`${API_BASE}/api/events/${id}/reviews`);
+            const js = await res.json().catch(()=>null);
+            const arr = Array.isArray(js?.data) ? js.data : (Array.isArray(js) ? js : []);
+            const c = arr.length;
+            total += c;
+            sumRating += arr.reduce((s, r) => s + (Number(r.rating) || 0), 0);
+            if (c > mostCount) { mostCount = c; mostTitle = e.Title || e.title || 'Event'; }
+          }
+          const avg = total ? (sumRating / total) : 0;
+          merged = {
+            ...merged,
+            reviews: {
+              ...(merged.reviews || {}),
+              totalReviews: total,
+              averageRating: avg,
+              mostReviewedEvent: mostCount ? { title: mostTitle, reviews: mostCount } : (merged.reviews?.mostReviewedEvent || null),
+            },
+          };
+        } catch { /* ignore */ }
+      }
+
+      setMetrics(merged);
     } catch (_) {
       setMetrics({ counts: {}, recent: {} });
     }
@@ -686,6 +962,10 @@ export default function AdminDashboard({ onSignOut }) {
             />
           )
         );
+      case 'profile':
+        return <AdminProfile onUpdated={(u)=>setCurrentUser(u)} />;
+      case 'logs':
+        return <LogsPage />;
       default:
         return <OverviewPage metrics={metrics} />;
     }
@@ -701,6 +981,10 @@ export default function AdminDashboard({ onSignOut }) {
         return 'User Management';
       case 'hostapps':
         return 'Host Applications';
+      case 'profile':
+        return 'My Profile';
+      case 'logs':
+        return 'System Logs';
       default:
         return 'Admin Dashboard';
     }
@@ -735,6 +1019,8 @@ export default function AdminDashboard({ onSignOut }) {
           { id: 'events', label: 'Events', icon: <CalendarDays size={16} /> },
           { id: 'hostapps', label: 'Host Applications', icon: <ClipboardList size={16} /> },
           { id: 'users', label: 'Users', icon: <User2 size={16} /> },
+          { id: 'profile', label: 'Profile', icon: <User2 size={16} /> },
+          { id: 'logs', label: 'Logs', icon: <FileText size={16} /> },
         ]}
         onSignOut={onSignOut}
       />
