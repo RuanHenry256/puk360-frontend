@@ -7,7 +7,7 @@ import '../styles/filterPanel.css';
 
 export default function EventListing({ onSelectEvent, onShowProfile }) {
   const [filteredEvents, setFilteredEvents] = useState(sampleEvents);
-  const [filters, setFilters] = useState({ date: '', category: '', location: '' });
+  const [filters, setFilters] = useState({ startDate: '', endDate: '', category: '', location: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -18,7 +18,17 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
 
   useEffect(() => {
     let list = sampleEvents;
-    if (filters.date) list = list.filter(e => e.date === filters.date);
+    // Date range filter (inclusive)
+    if (filters.startDate || filters.endDate) {
+      const from = filters.startDate ? new Date(filters.startDate + 'T00:00:00') : null;
+      const to = filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null;
+      list = list.filter((e) => {
+        const d = new Date(e.date + 'T00:00:00');
+        const afterStart = from ? d >= from : true;
+        const beforeEnd = to ? d <= to : true;
+        return afterStart && beforeEnd;
+      });
+    }
     if (filters.category) list = list.filter(e => e.category === filters.category);
     if (filters.location) list = list.filter(e => e.location === filters.location);
     if (searchTerm) list = list.filter(e => e.title.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -82,15 +92,26 @@ export default function EventListing({ onSelectEvent, onShowProfile }) {
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-secondary" htmlFor="filter-date">Date</label>
-                  <select id="filter-date" name="date" value={filters.date} onChange={handleFilterChange}
-                          className="w-full rounded-lg border border-secondary/60 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50">
-                    <option value="">Any date</option>
-                    <option value="2025-10-01">October 1, 2025</option>
-                    <option value="2025-10-02">October 2, 2025</option>
-                    <option value="2025-07-25">July 25, 2025</option>
-                    <option value="2024-10-23">October 23, 2024</option>
-                  </select>
+                  <label className="text-sm font-semibold text-secondary" htmlFor="filter-start">Start date</label>
+                  <input
+                    id="filter-start"
+                    name="startDate"
+                    type="date"
+                    value={filters.startDate}
+                    onChange={handleFilterChange}
+                    className="w-full rounded-lg border border-secondary/60 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-secondary" htmlFor="filter-end">End date</label>
+                  <input
+                    id="filter-end"
+                    name="endDate"
+                    type="date"
+                    value={filters.endDate}
+                    onChange={handleFilterChange}
+                    className="w-full rounded-lg border border-secondary/60 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
                 </div>
 
                 <div className="flex flex-col gap-2">

@@ -10,7 +10,7 @@ This guide lists the major UI components and flows implemented.
   - `showTopBar` prop allows embedding without the student TopBar
 - `src/pages/ReviewEventDetail.js`
   - Fetches `GET /api/events/:id`
-  - Renders Title, Description, Date/Time, Hosted By, Venue/Campus, Image
+  - Renders Title, Description, Date/startTime–endTime, Hosted By, Venue/Campus, Image
 
 ## Host workspace
 - `src/pages/HostMain.jsx`
@@ -30,10 +30,17 @@ This guide lists the major UI components and flows implemented.
 
 ## Admin
 - `src/pages/AdminMainDash.jsx`
-  - New Host Applications section
-  - Two‑column card grid (desktop)
-  - Detail modal with Approve/Reject + reviewer comment
-  - Uses `Sidebar.jsx`
+  - Overview dashboard with metrics:
+    - Engagement: Attended (Total, This Month), Avg Attendance/Event, Active Users (7d), Most Popular Event.
+    - Event Analytics: Upcoming, Cancelled, Category breakdown, Top venues.
+    - User Insights: New users (This Month), Verified vs Pending Hosts, Avg Host Rating, Most Active User.
+    - Feedback & Reviews: Total Reviews, Avg Event Rating, Most Reviewed Event, recent snippets.
+    - System Health: DB connection, Last backup, API uptime (past 24h), Storage used.
+    - Visuals: CSS‑only bar chart (events per month) and line chart (user growth).
+  - Events: Admins can search/filter all events, open details, duplicate/cancel/delete, and create events — mirrors the Host “My Events” UX but operates on all events.
+  - Host Applications: grid + detail modal with Approve/Reject and reviewer comment.
+  - Users: searchable list with role filter (All/Student/Host/Admin), color‑coded badges; dedicated edit screen (edit name/email/roles, delete, reactivate host).
+  - Uses `Sidebar.jsx` for navigation.
 
 ## Shared components
 - `src/components/Sidebar.jsx`
@@ -43,7 +50,9 @@ This guide lists the major UI components and flows implemented.
 - `src/components/Spinner.jsx`
   - Simple circular loader used across the app (example: `<Spinner size={40} />`)
 - `src/api/client.js`
-  - Added `api.events.create/delete/updateStatus`, `api.hosts.*` analytics, and `api.admin.*` review endpoints
+  - Event helpers: `api.events.list/get/create/delete/updateStatus`.
+  - Host analytics: `api.hosts.stats/topEvents/categoryMix/rsvpTrend/recentReviews`.
+  - Admin: `api.admin.users/*`, `api.admin.host-applications/*`, `api.admin.dashboard`.
 
 ## Icons
 - We use `lucide-react` for icons (install with `npm install lucide-react`).
@@ -74,6 +83,18 @@ Enhancements
 
 Notes
 - If `/api/admin/roles` is unavailable, the edit screen falls back to the known role IDs (1,2,3) and still pre‑selects the user’s current roles.
+
+## Admin: Events (new)
+- Mirrors the Host “My Events” experience but over all events:
+  - Search, Upcoming/Past/All, and Status filters.
+  - Row actions: Duplicate, Cancel, Delete.
+  - Detail overlay uses `HostEventDetail` with `canEdit=true`.
+  - “+ Create Event” opens `HostCreateEvent` overlay (admins can create new events).
+  - Lists from `api.events.list({})` (no host filter).
+
+## Admin: Overview metrics (new)
+- Reads from `GET /api/admin/dashboard` and renders the sections above.
+- The UI is defensive: missing fields default to `0`/`—`. Category breakdown accepts either object maps or arrays of `{category, count}`.
 
 ## Host Overview accuracy (new)
 - Overview stats refresh when landing on the Overview tab and after creating an event, so “Upcoming Events” reflects new events.

@@ -1,58 +1,195 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AdminUserEdit from './AdminUserEdit';
+import HostCreateEvent from './HostCreateEvent';
+import HostEventDetail from './HostEventDetail';
 import Sidebar from '../components/Sidebar';
 import { Home, CalendarDays, ClipboardList, User2 } from 'lucide-react';
 import { api } from '../api/client';
 
-function OverviewPage({ totalUsers = 0 }) {
+function StatTile({ label, value, sub }) {
+  return (
+    <div className="rounded-lg bg-secondary/10 p-4">
+      <p className="text-sm text-secondary">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-primary">{value}</p>
+      {sub ? <p className="text-xs text-secondary">{sub}</p> : null}
+    </div>
+  );
+}
+
+function BarsChart({ data = [], labels = [] }) {
+  const max = Math.max(1, ...data);
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      <div className="flex h-28 items-end gap-2">
+        {data.map((v, i) => (
+          <div key={i} className="flex-1">
+            <div
+              className="w-full rounded-t bg-primary/70"
+              style={{ height: `${(v / max) * 100}%` }}
+              title={`${labels[i] || i}: ${v}`}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-between text-xs text-secondary">
+        {(labels.length ? labels : data.map((_, i) => i + 1)).map((l, i) => (
+          <span key={i}>{l}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LineChart({ data = [], labels = [] }) {
+  const max = Math.max(1, ...data);
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      <div className="flex h-28 items-end gap-1">
+        {data.map((v, i) => (
+          <div
+            key={i}
+            className="h-full w-full max-w-[6px] rounded bg-gradient-to-t from-primary/20 to-primary"
+            style={{ height: `${(v / max) * 100}%` }}
+            title={`${labels[i] || i}: ${v}`}
+          />
+        ))}
+      </div>
+      <div className="flex justify-between text-xs text-secondary">
+        {(labels.length ? labels : data.map((_, i) => i + 1)).map((l, i) => (
+          <span key={i}>{l}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OverviewPage({ metrics = {} }) {
+  const m = metrics || {};
+  const engagement = m.engagement || {};
+  const events = m.events || {};
+  const users = m.users || {};
+  const reviews = m.reviews || {};
+  const system = m.system || {};
+
+  const eventsPerMonth = m.charts?.eventsPerMonth || [2, 5, 3, 8, 6, 9, 4, 7, 5, 6, 8, 10];
+  const userGrowth = m.charts?.userGrowth || [10, 12, 15, 20, 24, 28, 33, 35, 40, 46, 53, 60];
+  const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Normalize possible backend shapes
+  const categoriesArray = Array.isArray(events.categoryBreakdown)
+    ? events.categoryBreakdown.map((item) => [
+        String(item?.category ?? item?.name ?? 'Unknown'),
+        Number(item?.count ?? item?.value ?? 0),
+      ])
+    : Object.entries(events.categoryBreakdown || {}).map(([k, v]) => [
+        String(k),
+        Number(typeof v === 'object' && v !== null ? (v.count ?? v.value ?? 0) : v),
+      ]);
+  const categoriesCount = categoriesArray.length;
+  const topVenueNames = Array.isArray(events.topVenues)
+    ? events.topVenues
+        .map((tv) => (typeof tv === 'string' ? tv : (tv?.name ?? tv?.title ?? tv?.venue ?? 'Unknown')))
+        .slice(0, 3)
+    : [];
+
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
-        <h2 className="mb-4 text-2xl font-bold text-primary">Dashboard Overview</h2>
-        <div className="grid grid-cols-2 gap-4">
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-xl font-semibold text-primary">Engagement</h3>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatTile label="Events Attended (Total)" value={engagement.attendedTotal ?? 0} />
+          <StatTile label="Attended (This Month)" value={engagement.attendedThisMonth ?? 0} />
+          <StatTile label="Avg Attendance / Event" value={(engagement.avgAttendancePerEvent ?? 0).toFixed(1)} />
+          <StatTile label="Active Users (7d)" value={engagement.activeUsers7d ?? 0} />
+        </div>
+        <div className="mt-3 text-sm text-secondary">
+          Most popular event: <span className="font-semibold text-primary">{engagement?.mostPopularEvent?.title || '—'}</span>
+          {typeof engagement?.mostPopularEvent?.attendees === 'number' && (
+            <span className="ml-1">({engagement.mostPopularEvent.attendees})</span>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-xl font-semibold text-primary">Event Analytics</h3>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatTile label="Upcoming Events" value={events.upcomingCount ?? 0} />
+          <StatTile label="Cancelled Events" value={events.cancelledCount ?? 0} />
+          <StatTile label="Top 3 Venues" value={(events.topVenues?.length ?? 0)} sub={topVenueNames.join(', ')} />
+          <StatTile label="Categories" value={categoriesCount} />
+        </div>
+        {categoriesArray.length > 0 && (
+          <div className="mt-3 text-sm text-secondary">
+            {categoriesArray.map(([k, v]) => (
+              <span key={k} className="mr-3">{k}: <span className="text-primary font-semibold">{v}</span></span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-xl font-semibold text-primary">User Insights</h3>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatTile label="New Users (This Month)" value={users.newThisMonth ?? 0} />
+          <StatTile label="Verified Hosts" value={users.verifiedHosts ?? 0} sub={`Pending: ${users.pendingHosts ?? 0}`} />
+          <StatTile label="Average Host Rating" value={(users.avgHostRating ?? 0).toFixed(2)} />
+          <StatTile label="Most Active User" value={users.mostActiveUser?.name ? users.mostActiveUser.name : '—'} sub={typeof users.mostActiveUser?.score === 'number' ? `Score: ${users.mostActiveUser.score}` : ''} />
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-xl font-semibold text-primary">Feedback & Reviews</h3>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <StatTile label="Total Reviews" value={reviews.totalReviews ?? 0} />
+          <StatTile label="Average Event Rating" value={(reviews.averageRating ?? 0).toFixed(2)} />
           <div className="rounded-lg bg-secondary/10 p-4">
-            <p className="text-sm text-secondary">Total Events</p>
-            <p className="text-3xl font-bold text-primary">24</p>
+            <p className="text-sm text-secondary">Most Reviewed Event</p>
+            <p className="mt-1 font-semibold text-primary">{reviews.mostReviewedEvent?.title || '—'}</p>
+            <p className="text-xs text-secondary">{reviews.mostReviewedEvent?.reviews ?? 0} reviews</p>
+          </div>
+        </div>
+        {Array.isArray(reviews.recentSnippets) && reviews.recentSnippets.length > 0 && (
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {reviews.recentSnippets.slice(0, 3).map((t, i) => {
+              const text = typeof t === 'string' ? t : (t?.text ?? t?.comment ?? t?.content ?? String(t));
+              return (
+                <div key={i} className="rounded-lg border border-secondary/30 bg-white p-3 text-sm text-text">“{text}”</div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-xl font-semibold text-primary">System Health</h3>
+        <div className="grid gap-4 sm:grid-cols-4">
+          <div className="rounded-lg bg-secondary/10 p-4">
+            <p className="text-sm text-secondary">DB Connection</p>
+            <p className="mt-1 text-3xl font-bold"><span title={system.dbConnected ? 'Connected' : 'Disconnected'}>{system.dbConnected ? '🟢' : '🔴'}</span></p>
           </div>
           <div className="rounded-lg bg-secondary/10 p-4">
-            <p className="text-sm text-secondary">Total Users</p>
-            <p className="text-3xl font-bold text-primary">{totalUsers}</p>
+            <p className="text-sm text-secondary">Last Backup</p>
+            <p className="mt-1 text-primary">{system.lastBackup || 'Unknown'}</p>
           </div>
           <div className="rounded-lg bg-secondary/10 p-4">
-            <p className="text-sm text-secondary">Active Events</p>
-            <p className="text-3xl font-bold text-primary">8</p>
+            <p className="text-sm text-secondary">API Uptime (past 24h)</p>
+            <p className="mt-1 text-3xl font-bold text-primary">{system.apiUptimePct ?? 0}%</p>
           </div>
           <div className="rounded-lg bg-secondary/10 p-4">
-            <p className="text-sm text-secondary">Pending Reviews</p>
-            <p className="text-3xl font-bold text-primary">15</p>
+            <p className="text-sm text-secondary">Storage Used</p>
+            <p className="mt-1 text-primary">{system.storageUsed ?? '—'}</p>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
-        <h3 className="mb-4 text-xl font-bold text-primary">Recent Activity</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 rounded-lg bg-secondary/10 p-3">
-            <span className="text-2xl">[✓]</span>
-            <div className="flex-1">
-              <p className="font-medium text-text">New event created</p>
-              <p className="text-sm text-secondary">2 hours ago</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-lg bg-secondary/10 p-3">
-            <span className="text-2xl">[+]</span>
-            <div className="flex-1">
-              <p className="font-medium text-text">New user registered</p>
-              <p className="text-sm text-secondary">5 hours ago</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-lg bg-secondary/10 p-3">
-            <span className="text-2xl">[*]</span>
-            <div className="flex-1">
-              <p className="font-medium text-text">Review submitted</p>
-              <p className="text-sm text-secondary">1 day ago</p>
-            </div>
-          </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+          <h3 className="mb-4 text-xl font-semibold text-primary">Events Per Month</h3>
+          <BarsChart data={eventsPerMonth} labels={monthLabels} />
+        </div>
+        <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+          <h3 className="mb-4 text-xl font-semibold text-primary">User Growth</h3>
+          <LineChart data={userGrowth} labels={monthLabels} />
         </div>
       </div>
     </div>
@@ -60,35 +197,182 @@ function OverviewPage({ totalUsers = 0 }) {
 }
 
 function EventsPage() {
+  const [creating, setCreating] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [selectedEventId, setSelectedEventId] = useState(null);
+
+  const [query, setQuery] = useState('');
+  const [range, setRange] = useState('upcoming'); // 'upcoming' | 'past' | 'all'
+  const [statusFilter, setStatusFilter] = useState(''); // '', 'Scheduled','Cancelled','Completed'
+
+  async function loadAllEvents() {
+    setLoading(true);
+    setError('');
+    try {
+      const list = await api.events.list({}); // no host filter => all events
+      setEvents(Array.isArray(list) ? list : []);
+    } catch (_) {
+      setError('Failed to load events');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { loadAllEvents(); }, []);
+
+  const filteredEvents = events.filter((e) => {
+    const d = new Date((typeof e.Date === 'string' ? e.Date : e.Date?.toString()) + 'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    const textMatch = !query || (e.Title || '').toLowerCase().includes(query.toLowerCase());
+    const statusMatch = !statusFilter || (e.Status || '').toLowerCase() === statusFilter.toLowerCase();
+    const dateMatch = range === 'all' ? true : range === 'upcoming' ? d >= today : d < today;
+    return textMatch && statusMatch && dateMatch;
+  });
+
+  async function duplicateEvent(e) {
+    try {
+      const token = localStorage.getItem('token');
+      await api.events.create({
+        Title: `${e.Title} (Copy)`,
+        Description: e.Description,
+        Date: typeof e.Date === 'string' ? e.Date : new Date(e.Date).toISOString().slice(0,10),
+        startTime: e.startTime,
+        endTime: e.endTime,
+        campus: e.campus,
+        venue: e.venue,
+        category: e.category,
+        hostedBy: e.hostedBy,
+        ImageUrl: e.ImageUrl,
+        Host_User_ID: e.Host_User_ID, // keep original host unless backend enforces current user
+        Status: e.Status || 'Scheduled',
+      }, token);
+      await loadAllEvents();
+    } catch (_) {}
+  }
+  async function deleteEvent(e) {
+    if (!window.confirm('Delete this event?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await api.events.delete(e.Event_ID, token);
+      await loadAllEvents();
+    } catch (_) {}
+  }
+  async function updateStatus(e, Status) {
+    try {
+      const token = localStorage.getItem('token');
+      await api.events.updateStatus(e.Event_ID, Status, token);
+      await loadAllEvents();
+    } catch (_) {}
+  }
+
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-primary">Manage Events</h2>
-          <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90">
-            + New Event
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search by title" className="w-full rounded border px-3 py-2" />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-1 min-w-[300px] overflow-hidden rounded-lg border border-secondary/40">
+            {['upcoming','past','all'].map((r, idx) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRange(r)}
+                className={`flex-1 px-3 py-2 text-sm text-center ${range===r ? 'bg-primary text-white' : 'bg-white text-secondary hover:bg-primary/5'} ${idx < 2 ? 'border-r border-secondary/30' : ''}`}
+              >
+                {r.charAt(0).toUpperCase()+r.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {['','Scheduled','Cancelled','Completed'].map((s) => (
+              <button
+                key={s || 'all'}
+                type="button"
+                onClick={() => setStatusFilter(s)}
+                className={`rounded-full border px-3 py-1 text-sm ${statusFilter===s ? 'border-primary text-primary bg-primary/5' : 'border-secondary/40 text-secondary hover:bg-primary/5'}`}
+              >
+                {s || 'All statuses'}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="ml-auto rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+          >
+            + Create Event
           </button>
         </div>
-        
-        <div className="space-y-4">
-          {['Music Night Extravaganza', 'Tech Conference 2024', 'Art Exhibition'].map((event, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg border border-secondary/40 bg-white p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-white">
-                  EV
-                </div>
-                <div>
-                  <p className="font-semibold text-text">{event}</p>
-                  <p className="text-sm text-secondary">October 23, 2024</p>
-                </div>
-              </div>
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm font-medium text-secondary hover:border-primary hover:text-primary">
-                Edit
-              </button>
-            </div>
-          ))}
-        </div>
       </div>
+
+      {loading && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-secondary">Loading…</div>}
+      {error && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-red-600">{error}</div>}
+      {!loading && !error && filteredEvents.length === 0 && (
+        <div className="rounded-lg border border-secondary/40 bg-white p-6 text-secondary">No events match your filters.</div>
+      )}
+      {!loading && !error && filteredEvents.map((e) => (
+        <div
+          key={e.Event_ID}
+          role="button"
+          tabIndex={0}
+          onClick={() => setSelectedEventId(e.Event_ID)}
+          onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') setSelectedEventId(e.Event_ID); }}
+          className="flex cursor-pointer items-center justify-between rounded-lg border border-secondary/40 bg-white p-4 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          aria-label={`Open details for ${e.Title}`}
+        >
+          <div>
+            <p className="text-left font-semibold text-text">{e.Title}</p>
+            <p className="text-sm text-secondary">{new Date((typeof e.Date === 'string' ? e.Date : e.Date?.toString()) + 'T00:00:00').toLocaleDateString('en-ZA', { year:'numeric', month:'short', day:'2-digit' })} • {e.venue || e.campus}</p>
+            <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-xs text-secondary">{e.Status || 'Scheduled'}</span>
+          </div>
+          <div className="flex gap-2 flex-col sm:flex-row sm:items-start">
+            <button
+              className="w-full sm:w-auto rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary"
+              onClick={(ev)=>{ ev.stopPropagation(); duplicateEvent(e); }}
+              onKeyDown={(ev)=>ev.stopPropagation()}
+            >
+              Duplicate
+            </button>
+            <button
+              className="w-full sm:w-auto rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary"
+              onClick={(ev)=>{ ev.stopPropagation(); updateStatus(e,'Cancelled'); }}
+              onKeyDown={(ev)=>ev.stopPropagation()}
+            >
+              Cancel
+            </button>
+            <button
+              className="w-full sm:w-auto rounded-lg border border-red-300 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+              onClick={(ev)=>{ ev.stopPropagation(); deleteEvent(e); }}
+              onKeyDown={(ev)=>ev.stopPropagation()}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* Create form overlay */}
+      {creating && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <HostCreateEvent
+              onCancel={() => setCreating(false)}
+              onCreated={() => { setCreating(false); loadAllEvents(); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Event detail overlay - admins can always edit */}
+      {selectedEventId && (
+        <HostEventDetail canEdit={true} eventId={selectedEventId} onClose={() => { setSelectedEventId(null); loadAllEvents(); }} />
+      )}
     </div>
   );
 }
@@ -132,7 +416,6 @@ function UsersPage({ users = [], loading = false, error = '', searchTerm, setSea
     <div className="space-y-6">
       <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
         <h2 className="mb-4 text-2xl font-bold text-primary">User Management</h2>
-        
         <div className="mb-4">
           <input
             type="text"
@@ -143,7 +426,6 @@ function UsersPage({ users = [], loading = false, error = '', searchTerm, setSea
           />
         </div>
 
-        {/* Role filter pills */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {['All', 'Student', 'Host', 'Admin'].map((opt) => (
             <button
@@ -184,9 +466,8 @@ function UsersPage({ users = [], loading = false, error = '', searchTerm, setSea
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
                       {String(name).charAt(0) || '?'}
                     </div>
-                  <div className="text-left min-w-0">
+                    <div className="text-left min-w-0">
                       <p className="font-semibold text-text">{name}</p>
-                      {/* Shorter email on mobile to make space for role badge */}
                       <p className="text-xs text-secondary sm:hidden">{shortEmail(email)}</p>
                       <p className="hidden sm:block text-sm text-secondary">{email}</p>
                     </div>
@@ -210,6 +491,7 @@ function UsersPage({ users = [], loading = false, error = '', searchTerm, setSea
 export default function AdminDashboard({ onSignOut }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [metrics, setMetrics] = useState({ counts: {}, recent: {} });
   const [apps, setApps] = useState([]);
   const [appsLoading, setAppsLoading] = useState(false);
   const [appsError, setAppsError] = useState('');
@@ -237,11 +519,14 @@ export default function AdminDashboard({ onSignOut }) {
     if (activeTab === 'users' && users.length === 0) {
       loadUsers();
     }
+    if (activeTab === 'overview') {
+      loadStats();
+    }
   }, [activeTab, users.length]);
 
   useEffect(() => {
-    // Initial load for overview count
     if (users.length === 0) loadUsers();
+    loadStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -256,8 +541,6 @@ export default function AdminDashboard({ onSignOut }) {
     } finally { setUsersLoading(false); }
   }
 
-  // roles and user details are loaded on the dedicated edit screen
-
   async function review(id, decision, comment) {
     try {
       const token = localStorage.getItem('token');
@@ -267,6 +550,16 @@ export default function AdminDashboard({ onSignOut }) {
     } catch (e) { alert(e.message || 'Failed to update'); }
   }
 
+  async function loadStats() {
+    try {
+      const token = localStorage.getItem('token');
+      const data = await api.admin.dashboard(token);
+      setMetrics(data || { counts: {}, recent: {} });
+    } catch (_) {
+      setMetrics({ counts: {}, recent: {} });
+    }
+  }
+
   function HostAppsPage() {
     return (
       <div className="space-y-6">
@@ -274,10 +567,10 @@ export default function AdminDashboard({ onSignOut }) {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-primary">Host Applications</h2>
             <div className="flex gap-2">
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={()=>loadApps('Pending')}>Pending</button>
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={()=>loadApps('Approved')}>Approved</button>
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={()=>loadApps('Rejected')}>Rejected</button>
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={()=>loadApps('All')}>All</button>
+              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={() => loadApps('Pending')}>Pending</button>
+              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={() => loadApps('Approved')}>Approved</button>
+              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={() => loadApps('Rejected')}>Rejected</button>
+              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={() => loadApps('All')}>All</button>
             </div>
           </div>
           {appsLoading && <div className="flex items-center justify-center py-8"><div className="spinner" /></div>}
@@ -320,11 +613,11 @@ export default function AdminDashboard({ onSignOut }) {
     const [comment, setComment] = useState('');
     if (!app) return null;
     return (
-      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/50 p-4" onClick={onClose}>
-        <div className="w-full max-w-2xl rounded-2xl border border-secondary/40 bg-white p-6 shadow-xl" onClick={(e)=>e.stopPropagation()}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto" onClick={onClose}>
+        <div className="w-full max-w-2xl max-h-[90vh] overflow-auto rounded-2xl border border-secondary/40 bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-2xl font-bold text-primary">Review Application</h3>
-            <button className="rounded px-3 py-1 text-secondary hover:bg-secondary/10" onClick={onClose}>✕</button>
+            <button className="rounded px-3 py-1 text-secondary hover:bg-secondary/10" onClick={onClose}>×</button>
           </div>
           <div className="grid gap-3">
             <div className="rounded-lg bg-primary/5 p-3">
@@ -341,15 +634,15 @@ export default function AdminDashboard({ onSignOut }) {
             </div>
             <div className="rounded-lg bg-primary/5 p-3">
               <label className="text-sm font-medium text-secondary">Reviewer comment (sent to applicant later)</label>
-              <textarea className="mt-1 h-28 w-full rounded border p-2" value={comment} onChange={(e)=>setComment(e.target.value)} />
+              <textarea className="mt-1 h-28 w-full rounded border p-2" value={comment} onChange={(e) => setComment(e.target.value)} />
             </div>
           </div>
           <div className="mt-4 flex justify-end gap-2">
             <button className="rounded-lg border border-secondary/60 px-4 py-2 text-sm text-secondary hover:border-primary hover:text-primary" onClick={onClose}>Cancel</button>
             {app.Status === 'Pending' && (
               <>
-                <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90" onClick={()=>review(app.Application_ID, 'APPROVED', comment)}>Approve</button>
-                <button className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50" onClick={()=>review(app.Application_ID, 'REJECTED', comment)}>Reject</button>
+                <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90" onClick={() => review(app.Application_ID, 'APPROVED', comment)}>Approve</button>
+                <button className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50" onClick={() => review(app.Application_ID, 'REJECTED', comment)}>Reject</button>
               </>
             )}
           </div>
@@ -361,7 +654,7 @@ export default function AdminDashboard({ onSignOut }) {
   const renderPage = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewPage totalUsers={users.length} />;
+        return <OverviewPage metrics={metrics} />;
       case 'events':
         return <EventsPage />;
       case 'hostapps':
@@ -376,7 +669,6 @@ export default function AdminDashboard({ onSignOut }) {
                 if (result?.deleted) {
                   setUsers((prev) => prev.filter((u) => u.User_ID !== result.id));
                 } else if (result) {
-                  // refresh list to reflect potential role/name changes
                   loadUsers();
                 }
               }}
@@ -395,7 +687,7 @@ export default function AdminDashboard({ onSignOut }) {
           )
         );
       default:
-        return <OverviewPage totalUsers={users.length} />;
+        return <OverviewPage metrics={metrics} />;
     }
   };
 
@@ -424,7 +716,7 @@ export default function AdminDashboard({ onSignOut }) {
           </div>
         </div>
       </div>
-      
+
       <div className="mx-auto max-w-7xl px-4 pt-20 pb-20 sm:px-6 lg:px-8 lg:pl-64 page-animate">
         {renderPage()}
       </div>

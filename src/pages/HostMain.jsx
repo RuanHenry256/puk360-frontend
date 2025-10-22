@@ -69,22 +69,25 @@ export default function HostMain({ onSignOut }) {
   const [topReviews, setTopReviews] = useState([]);
   const [catMix, setCatMix] = useState([]);
   const [trend, setTrend] = useState([]);
+  const [recentReviews, setRecentReviews] = useState([]);
 
   async function loadStats() {
     try {
       if (!user?.id) return;
       const s = await api.hosts.stats(user.id);
-      const [rsvps, reviews, mix, tr] = await Promise.all([
+      const [rsvps, reviews, mix, tr, rec] = await Promise.all([
         api.hosts.topEvents(user.id, 'rsvps', 2),
         api.hosts.topEvents(user.id, 'reviews', 2),
         api.hosts.categoryMix(user.id),
         api.hosts.rsvpTrend(user.id, 30),
+        api.hosts.recentReviews(user.id, 5),
       ]);
       setStats(s);
       setTopRsvps(rsvps);
       setTopReviews(reviews);
       setCatMix(mix);
       setTrend(tr);
+      setRecentReviews(rec);
     } catch (_) { /* ignore */ }
   }
 
@@ -188,6 +191,40 @@ export default function HostMain({ onSignOut }) {
           </div>
         </div>
       </div>
+
+      {/* Most Recent Reviews */}
+      <div className="rounded-2xl border border-secondary/40 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-xl font-semibold text-primary">Most Recent Reviews</h3>
+        {recentReviews.length === 0 ? (
+          <p className="text-sm text-secondary">No reviews yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {recentReviews.map((r) => {
+              const rating = Math.max(0, Math.min(5, Number(r.rating) || 0));
+              const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+              const title = r.title && String(r.title).trim().length ? String(r.title).trim() : '';
+              const dt = new Date(r.createdAt || Date.now()).toLocaleString('en-ZA', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+              return (
+                <li key={r.id} className="rounded-lg border border-secondary/30 p-3">
+                  {/* Top line with event badge */}
+                  <div className="flex items-center justify-end">
+                    <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-xs text-secondary">{r.eventTitle || `Event #${r.eventId}`}</span>
+                  </div>
+                  {/* Body formatted to match event details */}
+                  <div className="mt-1 text-yellow-500 text-base text-center">{stars}</div>
+                  {title && <p className="mt-1 text-center italic font-semibold text-primary">"{title}"</p>}
+                  {r.comment && <p className="mt-1 text-center text-sm text-text whitespace-pre-wrap">{r.comment}</p>}
+                  <p className="mt-1 text-center text-sm font-semibold text-primary">By {r.reviewerName || `User #${r.reviewerId}`}</p>
+                  {/* Footer date/time */}
+                  <div className="mt-2 flex justify-end">
+                    <span className="text-xs text-secondary">{dt}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 
@@ -252,6 +289,7 @@ export default function HostMain({ onSignOut }) {
           )}
         </div>
       </div>
+
       {loading && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-secondary">Loading…</div>}
       {error && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-red-600">{error}</div>}
       {!loading && !error && filteredMyEvents.length === 0 && (
@@ -302,7 +340,7 @@ export default function HostMain({ onSignOut }) {
         Title: `${e.Title} (Copy)`,
         Description: e.Description,
         Date: typeof e.Date === 'string' ? e.Date : new Date(e.Date).toISOString().slice(0,10),
-        Time: e.Time,
+        startTime: e.startTime,
         endTime: e.endTime,
         campus: e.campus,
         venue: e.venue,
@@ -431,8 +469,8 @@ export default function HostMain({ onSignOut }) {
 
       {/* Create form overlay */}
       {activeSection === 'myevents' && creating && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/50 p-4">
-          <div className="w-full max-w-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-auto">
             <HostCreateEvent
               onCancel={() => setCreating(false)}
               onCreated={() => { setCreating(false); loadMyEvents(); loadStats(); }}

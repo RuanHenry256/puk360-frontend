@@ -34,6 +34,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");   
   const [success, setSuccess] = useState(""); 
+  const [acceptedTcs, setAcceptedTcs] = useState(false);
+  const [showTcs, setShowTcs] = useState(false);
 
   const handleInputChange = (e) => {
     setError("");
@@ -60,6 +62,10 @@ const LoginScreen = ({ onLoginSuccess }) => {
       }
       if (formData.password !== formData.confirmPassword) {
         setError("Passwords do not match.");
+        return;
+      }
+      if (!acceptedTcs) {
+        setError('You must accept the Terms and Conditions to create an account.');
         return;
       }
     }
@@ -128,8 +134,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
           </div>
 
           {/* Split card on desktop: left image, right form. On mobile: form only. */}
-          <div className="w-full mx-auto lg:max-w-4xl">
-            <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden shadow-md lg:shadow-xl lg:flex lg:flex-row lg:h-[500px]">
+          <div className="w-full mx-auto lg:max-w-5xl">
+            <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden shadow-md lg:shadow-xl lg:flex lg:flex-row lg:min-h-[640px]">
               {/* BACKDROP LAYER */}
               <div className="
                 absolute inset-0
@@ -139,16 +145,16 @@ const LoginScreen = ({ onLoginSuccess }) => {
               " />
 
               {/* Left image (desktop only) */}
-              <div className="hidden lg:flex relative z-10 lg:w-1/2 h-full">
+              <div className="hidden lg:flex relative z-10 lg:w-1/2">
                 <img
                   src={groupPhoto}
                   alt="Students using PUK360"
-                  className="h-full w-full object-cover"
+                  className="w-full h-full object-cover"
                 />
               </div>
 
               {/* Right: form */}
-              <div className="relative z-10 w-full lg:w-1/2 p-5 sm:p-6 lg:p-8 lg:h-full flex">
+              <div className="relative z-10 w-full lg:w-1/2 p-5 sm:p-6 lg:p-8 flex">
                 
                 {/* CONTENT LAYER */}
                 <div className="w-full flex flex-col justify-center">
@@ -233,6 +239,22 @@ const LoginScreen = ({ onLoginSuccess }) => {
                     />
                   </div>
                 )}
+
+                {!isLogin && (
+                  <div className="mt-2 flex items-start gap-2 text-sm text-secondary">
+                    <input
+                      id="acceptTcs"
+                      type="checkbox"
+                      checked={acceptedTcs}
+                      onChange={(e)=>setAcceptedTcs(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-secondary/60"
+                    />
+                    <label htmlFor="acceptTcs" className="leading-tight">
+                      I agree to the
+                      {' '}<button type="button" onClick={()=>setShowTcs(true)} className="text-primary font-semibold hover:underline">Terms and Conditions</button>.
+                    </label>
+                  </div>
+                )}
               </div>
 
               {/* Buttons */}
@@ -242,7 +264,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                   variant="primary" 
                   fullWidth={true}
                   size="medium"
-                  disabled={loading}
+                  disabled={loading || (!isLogin && !acceptedTcs)}
                 >
                   {loading ? (isLogin ? 'Logging in…' : 'Creating…') : (isLogin ? 'Log in' : 'Create account')}
                 </Button>
@@ -285,8 +307,36 @@ const LoginScreen = ({ onLoginSuccess }) => {
         <p className="text-center text-primary text-xs sm:text-sm">
           © {new Date().getFullYear()} NWU. All rights reserved.
         </p>
-      </div>
     </div>
+
+    {/* Terms & Conditions Modal */}
+    {showTcs && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-2xl max-h-[85vh] overflow-auto rounded-2xl border border-secondary/40 bg-white p-6 shadow-xl">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-2xl font-bold text-primary">Terms and Conditions</h3>
+            <button type="button" className="text-secondary hover:text-primary" onClick={()=>setShowTcs(false)}>Close</button>
+          </div>
+          <div className="space-y-4 text-sm text-secondary text-left">
+            <p>Welcome to PUK360. By creating an account, you agree to the following:</p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>Be respectful. Do not post hate speech, harassment, threats, or abusive content in reviews or anywhere in the app.</li>
+              <li>Share honest and relevant reviews about events you attended. Avoid spam, advertising, or misleading claims.</li>
+              <li>Respect privacy. Do not post other people’s personal information without their consent.</li>
+              <li>Only RSVP to events you intend to attend. You may cancel RSVPs before the event starts.</li>
+              <li>Event hosts and administrators may view attendee names and emails for coordination and safety purposes.</li>
+              <li>We may remove content or restrict accounts that violate these terms or applicable laws.</li>
+              <li>Your data is handled according to our Privacy Notice. We store essential profile information and event activity to provide the service.</li>
+            </ul>
+            <p>These terms may be updated. Continued use of PUK360 after updates means you accept the changes.</p>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button type="button" variant="primary" onClick={()=>setShowTcs(false)}>Got it</Button>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
   );
 };
 

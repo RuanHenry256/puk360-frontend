@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Button from '../components/Button';
 import TopBar from '../components/TopBar';
-import { sampleEvents, formatEventDate } from './sampleEvents';
+import { formatEventDate } from './sampleEvents';
+import { api } from '../api/client';
+import StudentEventDetail from './StudentEventDetail';
 
 const StudentProfile = ({
   user,
@@ -31,13 +33,19 @@ const StudentProfile = ({
     setFormData({ name: fallbackName, email: fallbackEmail });
   }, [fallbackName, fallbackEmail]);
 
-  const visitedEvents = useMemo(
-    () =>
-      visitedEventIds
-        .map((id) => sampleEvents.find((event) => event.id === id))
-        .filter(Boolean),
-    [visitedEventIds]
-  );
+  const [rsvps, setRsvps] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const uid = user?.id || JSON.parse(localStorage.getItem('user')||'{}')?.id;
+        if (!uid) return;
+        const list = await api.rsvp.listByUser(uid);
+        setRsvps(list);
+      } catch { setRsvps([]); }
+    })();
+  }, [user?.id]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -183,27 +191,53 @@ const StudentProfile = ({
 
         <section className="rounded-2xl border border-secondary/30 bg-primary/5 p-6 shadow-sm lg:col-span-1">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-primary">Visited events</h2>
-            <span className="text-sm text-secondary">{visitedEvents.length} total</span>
+            <h2 className="text-xl font-semibold text-primary">RSVP'd Events</h2>
+            <span className="text-sm text-secondary">{rsvps.length} total</span>
           </div>
 
-          {visitedEvents.length === 0 ? (
+          {rsvps.length === 0 ? (
             <p className="mt-4 text-sm text-secondary">
-              You have not visited any events yet. Register for events to start tracking them here.
+              You have no RSVPs yet. Tap RSVP on upcoming events to track them here.
             </p>
           ) : (
             <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {visitedEvents.map((event) => (
+              {rsvps.map((r) => (
                 <li
-                  key={event.id}
+                  key={`${r.eventId}-${r.joinedAt}`}
                   className="flex flex-col gap-2 rounded-xl border border-secondary/30 bg-primary/5 p-4 shadow-sm"
                 >
-                  <h3 className="text-lg font-semibold text-primary">{event.title}</h3>
-                  <p className="text-sm text-secondary">{formatEventDate(event.date)}</p>
-                  <p className="text-sm text-secondary">{event.location}</p>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-primary truncate pr-2">{r.title}</h3>
+                    <span className={`rounded-full px-2 py-0.5 text-xs ${r.status==='Upcoming' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>{r.status}</span>
+                  </div>
+                  <p className="text-sm text-secondary">{formatEventDate(new Date(r.date).toISOString().slice(0,10))}</p>
+                  <p className="text-sm text-secondary">{r.venue || r.campus || ''}</p>
                   <span className="inline-flex w-fit rounded-full bg-secondary/10 px-3 py-1 text-xs font-semibold text-secondary">
-                    {event.category}
+                    {r.category || 'General'}
                   </span>
+                  <div className="mt-2 flex gap-2">
+                    <Button type="button" variant="outline" onClick={() => setSelectedEventId(r.eventId)} size="small">View</Button>
+                    {r.status === 'Upcoming' && (
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="small"
+                        onClick={async ()=>{
+                          try {
+                            const token = localStorage.getItem('token');
+                            const raw = localStorage.getItem('user');
+                            const u = raw ? JSON.parse(raw) : null;
+                            const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events/${r.eventId}/join`, {
+                              method: 'DELETE', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ userId: u?.id })
+                            });
+                            if (!res.ok) throw new Error('Failed to cancel RSVP');
+                            // refresh list
+                            const uid = u?.id; if (uid) { const list = await api.rsvp.listByUser(uid); setRsvps(list); }
+                          } catch (e) { /* could show toast */ }
+                        }}
+                      >Cancel</Button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -264,6 +298,9 @@ const StudentProfile = ({
             )}
           </div>
         </section>
+      {selectedEventId && (
+        <StudentEventDetail eventId={selectedEventId} onClose={() => setSelectedEventId(null)} />
+      )}
       </div>
     </div>
   );

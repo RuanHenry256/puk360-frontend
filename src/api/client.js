@@ -100,6 +100,16 @@ export const api = {
       const res = await http(`/api/hosts/${hostUserId}/rsvp-trend?days=${days}`, { method: 'GET' });
       return Array.isArray(res?.data) ? res.data : [];
     },
+    recentReviews: async (hostUserId, limit = 5) => {
+      const res = await http(`/api/hosts/${hostUserId}/recent-reviews?limit=${limit}`, { method: 'GET' });
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+  },
+  rsvp: {
+    listByUser: async (userId) => {
+      const res = await http(`/api/events/users/${userId}`, { method: 'GET' });
+      return Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+    },
   },
   uploads: {
     // Request a presigned URL for image upload. Backend should respond with
@@ -129,6 +139,10 @@ export const api = {
     listRoles: async (token) => {
       const res = await http('/api/admin/roles', { method: 'GET', token });
       return Array.isArray(res?.data) ? res.data : [];
+    },
+    dashboard: async (token) => {
+      const res = await http('/api/admin/dashboard', { method: 'GET', token });
+      return res?.data || { counts: {}, recent: {} };
     },
     updateUser: async (id, payload, token) => {
       const res = await http(`/api/admin/users/${id}`, { method: 'PATCH', body: payload, token });

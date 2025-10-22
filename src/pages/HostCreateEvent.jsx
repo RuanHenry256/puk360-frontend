@@ -19,7 +19,7 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
     Title: '',
     Description: '',
     Date: '',
-    Time: '',
+    startTime: '',
     endTime: '',
     campus: 'Potchefstroom',
     venue: '',
@@ -147,7 +147,7 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-secondary">Start Time</label>
-            <input type="time" name="Time" value={form.Time} onChange={update} required className="w-full rounded-lg border px-3 py-2" />
+            <input type="time" name="startTime" value={form.startTime} onChange={update} required className="w-full rounded-lg border px-3 py-2" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-secondary">End Time</label>
