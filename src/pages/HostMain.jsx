@@ -422,7 +422,7 @@ export default function HostMain({ onSignOut }) {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="rounded p-2 text-primary hover:bg-primary/10 lg:hidden"
+              className="rounded p-2 text-primary hover:bg-primary/10"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
             >
@@ -433,7 +433,7 @@ export default function HostMain({ onSignOut }) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 pt-20 pb-24 sm:px-6 lg:px-8 lg:pl-64 page-animate">
+      <div className="mx-auto max-w-7xl px-4 pt-20 pb-24 sm:px-6 lg:px-8 page-animate">
         {(() => {
           const h = pageHeading();
           return h ? (
@@ -485,6 +485,7 @@ export default function HostMain({ onSignOut }) {
       )}
 
       <Sidebar
+        dropdown
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         items={menuItems}

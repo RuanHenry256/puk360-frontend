@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Reusable responsive sidebar for Host/Admin pages
 // - Mobile: slide-in drawer with overlay (controlled by open/onClose)
@@ -11,8 +11,87 @@ export default function Sidebar({
   onSelect,
   onSignOut,
   embed = false, // when true, render sticky desktop rail only
+  dropdown = false, // when true, render a top-left dropdown panel
 }) {
   const [confirmSignOut, setConfirmSignOut] = useState(false);
+  // Local animation state for dropdown variant
+  const [ddMounted, setDdMounted] = useState(false);
+  const [ddVisible, setDdVisible] = useState(false);
+
+  // Handle mount/unmount with fade/scale animation when in dropdown mode
+  useEffect(() => {
+    if (!dropdown) return;
+    if (open) {
+      setDdMounted(true);
+      // Delay to ensure transition applies after mount
+      const t = setTimeout(() => setDdVisible(true), 20);
+      return () => clearTimeout(t);
+    } else if (ddMounted) {
+      setDdVisible(false);
+      const t = setTimeout(() => setDdMounted(false), 220);
+      return () => clearTimeout(t);
+    }
+  }, [dropdown, open, ddMounted]);
+
+  // Dropdown variant: small floating panel under the top navbar hamburger
+  if (dropdown) {
+    if (!ddMounted) return null;
+    return (
+      <>
+        {/* Click-away area to close */}
+        <div
+          className={[
+            'fixed inset-0 z-40 transition-opacity duration-200 ease-out',
+            ddVisible ? 'opacity-100' : 'opacity-0',
+          ].join(' ')}
+          onClick={onClose}
+        />
+        <div className="fixed left-4 top-[4.5rem] z-50 w-64">
+          <div
+            className={[
+              'rounded-3xl border border-secondary/30 bg-white/95 p-4 shadow-2xl backdrop-blur-sm max-h-[70vh] overflow-auto',
+              'origin-top-left transform transition-all duration-200 ease-out will-change-transform will-change-opacity',
+              ddVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2',
+            ].join(' ')}
+          >
+            <nav className="space-y-3">
+              {items.map((it) => (
+                <button
+                  key={it.id}
+                  type="button"
+                  onClick={() => { onSelect?.(it.id); onClose?.(); }}
+                  className={[
+                    'flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition',
+                    activeId === it.id
+                      ? 'bg-primary text-white shadow-md'
+                      : 'bg-white text-primary hover:bg-white/90 border border-secondary/30',
+                  ].join(' ')}
+                >
+                  <span className={[
+                    'inline-flex h-7 w-7 items-center justify-center rounded-md',
+                    activeId === it.id ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary',
+                  ].join(' ')}>{it.icon || '📌'}</span>
+                  <span className="font-semibold">{it.label}</span>
+                </button>
+              ))}
+            </nav>
+            {onSignOut && (
+              <div className="mt-3 border-t border-secondary/30 pt-3">
+                {confirmSignOut ? (
+                  <div className="flex gap-2">
+                    <button type="button" className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700" onClick={() => { onSignOut?.(); setConfirmSignOut(false); onClose?.(); }}>Confirm</button>
+                    <button type="button" className="flex-1 rounded-lg border border-secondary/60 px-3 py-2 text-sm font-semibold text-secondary hover:border-primary hover:text-primary" onClick={() => setConfirmSignOut(false)}>Cancel</button>
+                  </div>
+                ) : (
+                  <button type="button" className="w-full rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100" onClick={() => setConfirmSignOut(true)}>Sign out</button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (embed) {
     // Sticky desktop rail for layouts; hidden on mobile

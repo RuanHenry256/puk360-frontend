@@ -711,13 +711,13 @@ export default function AdminDashboard({ onSignOut }) {
       <div className="fixed inset-x-0 top-0 z-40 h-16 border-b border-secondary/40 bg-primary/5 backdrop-blur">
         <div className="flex h-full items-center justify-start px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <button type="button" className="rounded p-2 text-primary hover:bg-primary/10 lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu">☰</button>
+            <button type="button" className="rounded p-2 text-primary hover:bg-primary/10" onClick={() => setMenuOpen(true)} aria-label="Open menu">☰</button>
             <h1 className="text-xl font-bold text-primary lg:text-left">{getTitle()}</h1>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 pt-20 pb-20 sm:px-6 lg:px-8 lg:pl-64 page-animate">
+      <div className="mx-auto max-w-7xl px-4 pt-20 pb-20 sm:px-6 lg:px-8 page-animate">
         {renderPage()}
       </div>
       {activeTab === 'hostapps' && selectedApp && (
@@ -725,6 +725,7 @@ export default function AdminDashboard({ onSignOut }) {
       )}
 
       <Sidebar
+        dropdown
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         activeId={activeTab}

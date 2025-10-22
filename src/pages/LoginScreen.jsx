@@ -1,23 +1,22 @@
 /**
- * Login and registration screen.
- * Compact interior (smaller paddings/gaps/controls) so both modes fit
- * inside a fixed-height, smaller card — no scrollbars. Fonts unchanged.
+ * Login and registration screen (compact, original-glass effect)
+ * ~80% scale, no scrollbars, 50/50 split, and the SAME transparency classes
+ * you used originally: bg-primary/6 + backdrop-blur-[3px] + supports fallback.
  */
-import React, { useState } from 'react';
-import Button from '../components/Button';
-import { api } from '../api/client';
-import '../styles/NWUBackground.css';
-import brandLogo from '../assets/puk360-logo-circle.png';
-import groupPhoto from '../assets/group photo login.png';
+import React, { useState } from "react";
+import Button from "../components/Button";
+import { api } from "../api/client";
+import "../styles/NWUBackground.css";
+import brandLogo from "../assets/puk360-logo-circle.png";
+import groupPhoto from "../assets/group photo login.png";
 
 const LoginScreen = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
-
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -78,7 +77,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
 
   const handleToggleMode = () => {
     setIsLogin(!isLogin);
-    setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+    setFormData({ name: "", email: "", password: "", confirmPassword: "" });
     setError("");
     setSuccess("");
   };
@@ -88,34 +87,39 @@ const LoginScreen = ({ onLoginSuccess }) => {
       {/* Background */}
       <div className="nwu-background"></div>
 
-      {/* Foreground content */}
-      <div className="flex-1 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* outer width shrunk */}
+      {/* Foreground */}
+      <div className="flex-1 flex flex-col justify-center py-6 px-3 sm:px-5 lg:px-6 relative z-10">
+        {/* ~80% outer width */}
         <div className="w-full mx-auto max-w-md lg:max-w-4xl">
           {/* Header */}
-          <div className="flex flex-col items-center mb-6 space-y-3">
-            <div className="flex items-center space-x-3">
+          <div className="flex flex-col items-center mb-5 space-y-2.5">
+            <div className="flex items-center space-x-2.5">
               <img
                 src={brandLogo}
                 alt="PUK360 logo"
-                className="w-[64px] h-[64px] lg:w-[72px] lg:h-[72px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
+                className="w-[56px] h-[56px] lg:w-[64px] lg:h-[64px] rounded-full object-contain ring-2 ring-primary/30 bg-white/80"
               />
-              <h1 className="text-4xl sm:text-3xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-2xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 PUK360
               </h1>
             </div>
-
-            <h2 className="text-lg sm:text-xl font-semibold text-secondary text-center lg:hidden">
-              {isLogin ? 'Sign in to PUK360' : 'Create your account'}
+            <h2 className="text-base sm:text-lg font-semibold text-secondary text-center lg:hidden">
+              {isLogin ? "Sign in to PUK360" : "Create your account"}
             </h2>
           </div>
 
-          {/* inner width shrunk */}
+          {/* Card (compact) */}
           <div className="w-full mx-auto lg:max-w-3xl">
-            {/* fixed height; interior compact => no scrollbar */}
-            <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden shadow-md lg:shadow-xl lg:flex lg:flex-row lg:h-[540px]">
-              {/* back layer */}
-              <div className="absolute inset-0 bg-primary/6 dark:bg-primary-dm/8 backdrop-blur-[3px] supports-[backdrop-filter:none]:bg-white/92" />
+            <div className="relative rounded-2xl border-2 border-primary/50 dark:border-primary-dm/50 overflow-hidden shadow-md lg:shadow-lg lg:flex lg:flex-row lg:h-[460px]">
+              {/* ✅ ORIGINAL GLASS EFFECT (exact classes from your first code) */}
+              <div
+                className="
+                  absolute inset-0
+                  bg-primary/6 dark:bg-primary-dm/8
+                  backdrop-blur-[3px]
+                  supports-[backdrop-filter:none]:bg-white/92
+                "
+              />
 
               {/* Left image (50%) */}
               <div className="hidden lg:flex relative z-10 lg:w-1/2">
@@ -127,104 +131,82 @@ const LoginScreen = ({ onLoginSuccess }) => {
               </div>
 
               {/* Right form (50%) */}
-              {/* NOTE: no overflow-y here; we fit everything by compacting spacing */}
               <div className="relative z-10 w-full lg:w-1/2 p-3 sm:p-4 lg:p-5 flex">
                 <div className="w-full flex flex-col justify-center">
-                  {/* Desktop subheading (smaller margin) */}
-                  <h2 className="hidden lg:block text-lg font-semibold text-secondary text-center mb-3">
-                    {isLogin ? 'Sign in to PUK360' : 'Create your account'}
+                  <h2 className="hidden lg:block text-base font-semibold text-secondary text-center mb-2">
+                    {isLogin ? "Sign in to PUK360" : "Create your account"}
                   </h2>
 
-                  {/* Status messages */}
-                  {error && <div className="mb-3 text-red-600 text-sm">{error}</div>}
-                  {success && <div className="mb-3 text-green-600 text-sm">{success}</div>}
+                  {/* Messages */}
+                  {error && <div className="mb-2 text-red-600 text-sm">{error}</div>}
+                  {success && <div className="mb-2 text-green-600 text-sm">{success}</div>}
 
-                  {/* Form (tighter gaps) */}
-                  <div className="flex flex-col space-y-3 mb-4">
+                  {/* Form (compact) */}
+                  <div className="flex flex-col space-y-2.5 mb-3">
                     {!isLogin && (
                       <div className="flex flex-col">
-                        <label htmlFor="name" className="text-sm font-medium text-secondary mb-0.5">Full name</label>
+                        <label htmlFor="name" className="text-xs font-medium text-secondary mb-0.5">Full name</label>
                         <input
                           id="name"
                           type="text"
                           name="name"
                           value={formData.name}
                           onChange={handleInputChange}
-                          className="w-full px-3.5 py-2 
-                                     bg-white dark:bg-surface-dm
-                                     border border-primary/20 dark:border-primary-dm/25 
-                                     rounded-xl focus:outline-none focus:ring-2 
-                                     focus:ring-primary/40 dark:focus:ring-primary-dm/40 
-                                     transition duration-200"
+                          className="w-full px-3 py-1.5 bg-white border border-primary/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
                         />
                       </div>
                     )}
 
                     <div className="flex flex-col">
-                      <label htmlFor="email" className="text-sm font-medium text-secondary mb-0.5">Email</label>
+                      <label htmlFor="email" className="text-xs font-medium text-secondary mb-0.5">Email</label>
                       <input
                         id="email"
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="w-full px-3.5 py-2 
-                                   bg-white dark:bg-surface-dm
-                                   border border-primary/20 dark:border-primary-dm/25 
-                                   rounded-xl focus:outline-none focus:ring-2 
-                                   focus:ring-primary/40 dark:focus:ring-primary-dm/40 
-                                   transition duration-200"
+                        className="w-full px-3 py-1.5 bg-white border border-primary/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
                       />
                     </div>
 
                     <div className="flex flex-col">
-                      <label htmlFor="password" className="text-sm font-medium text-secondary mb-0.5">Password</label>
+                      <label htmlFor="password" className="text-xs font-medium text-secondary mb-0.5">Password</label>
                       <input
                         id="password"
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="w-full px-3.5 py-2 
-                                   bg-white dark:bg-surface-dm
-                                   border border-primary/20 dark:border-primary-dm/25 
-                                   rounded-xl focus:outline-none focus:ring-2 
-                                   focus:ring-primary/40 dark:focus:ring-primary-dm/40 
-                                   transition duration-200"
+                        className="w-full px-3 py-1.5 bg-white border border-primary/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
                       />
                     </div>
 
                     {!isLogin && (
                       <div className="flex flex-col">
-                        <label htmlFor="confirmPassword" className="text-sm font-medium text-secondary mb-0.5">Confirm password</label>
+                        <label htmlFor="confirmPassword" className="text-xs font-medium text-secondary mb-0.5">Confirm password</label>
                         <input
                           id="confirmPassword"
                           type="password"
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleInputChange}
-                          className="w-full px-3.5 py-2 
-                                     bg-white dark:bg-surface-dm
-                                     border border-primary/20 dark:border-primary-dm/25 
-                                     rounded-xl focus:outline-none focus:ring-2 
-                                     focus:ring-primary/40 dark:focus:ring-primary-dm/40 
-                                     transition duration-200"
+                          className="w-full px-3 py-1.5 bg-white border border-primary/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
                         />
                       </div>
                     )}
 
                     {!isLogin && (
-                      <div className="mt-1 flex items-start gap-2 text-sm text-secondary">
+                      <div className="mt-1 flex items-start gap-2 text-xs text-secondary">
                         <input
                           id="acceptTcs"
                           type="checkbox"
                           checked={acceptedTcs}
-                          onChange={(e)=>setAcceptedTcs(e.target.checked)}
-                          className="mt-0.5 h-4 w-4 rounded border-secondary/60"
+                          onChange={(e) => setAcceptedTcs(e.target.checked)}
+                          className="mt-0.5 h-3.5 w-3.5 rounded border-secondary/60"
                         />
                         <label htmlFor="acceptTcs" className="leading-tight">
-                          I agree to the{' '}
-                          <button type="button" onClick={()=>setShowTcs(true)} className="text-primary font-semibold hover:underline">
+                          I agree to the{" "}
+                          <button type="button" onClick={() => setShowTcs(true)} className="text-primary font-semibold hover:underline">
                             Terms and Conditions
                           </button>.
                         </label>
@@ -232,25 +214,25 @@ const LoginScreen = ({ onLoginSuccess }) => {
                     )}
                   </div>
 
-                  {/* Buttons (tighter vertical spacing, same font) */}
-                  <div className="flex flex-col space-y-2">
+                  {/* Buttons */}
+                  <div className="flex flex-col space-y-1.5">
                     <Button
                       onClick={handleSubmit}
                       variant="primary"
                       fullWidth={true}
-                      size="medium"
+                      size="small"
                       disabled={loading || (!isLogin && !acceptedTcs)}
                     >
-                      {loading ? (isLogin ? 'Logging in…' : 'Creating…') : (isLogin ? 'Log in' : 'Create account')}
+                      {loading ? (isLogin ? "Logging in…" : "Creating…") : (isLogin ? "Log in" : "Create account")}
                     </Button>
 
                     {isLogin ? (
-                      <div className="text-center text-sm text-secondary">
+                      <div className="text-center text-xs text-secondary">
                         <div>Don’t have an account yet?</div>
                         <button
                           type="button"
                           onClick={handleToggleMode}
-                          className="text-primary font-semibold hover:underline text-[1.05em] mt-0.5"
+                          className="text-primary font-semibold hover:underline text-[1em] mt-0.5"
                           disabled={loading}
                         >
                           Sign up here
@@ -261,6 +243,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                         onClick={handleToggleMode}
                         variant="outline"
                         fullWidth={true}
+                        size="small"
                         disabled={loading}
                       >
                         Back to login
@@ -275,8 +258,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
       </div>
 
       {/* Footer */}
-      <div className="relative z-10 py-6">
-        <p className="text-center text-primary text-xs sm:text-sm">
+      <div className="relative z-10 py-4">
+        <p className="text-center text-primary text-[0.7rem] sm:text-xs">
           © {new Date().getFullYear()} NWU. All rights reserved.
         </p>
       </div>
@@ -284,26 +267,30 @@ const LoginScreen = ({ onLoginSuccess }) => {
       {/* Terms & Conditions Modal */}
       {showTcs && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl max-h-[85vh] overflow-auto rounded-2xl border border-secondary/40 bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-2xl font-bold text-primary">Terms and Conditions</h3>
-              <button type="button" className="text-secondary hover:text-primary" onClick={()=>setShowTcs(false)}>Close</button>
+          <div className="w-full max-w-md max-h-[85vh] overflow-auto rounded-2xl border border-secondary/40 bg-white p-5 shadow-xl">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-primary">Terms and Conditions</h3>
+              <button type="button" className="text-secondary hover:text-primary" onClick={() => setShowTcs(false)}>
+                Close
+              </button>
             </div>
-            <div className="space-y-4 text-sm text-secondary text-left">
+            <div className="space-y-2 text-xs text-secondary text-left">
               <p>Welcome to PUK360. By creating an account, you agree to the following:</p>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>Be respectful. Do not post hate speech, harassment, threats, or abusive content in reviews or anywhere in the app.</li>
-                <li>Share honest and relevant reviews about events you attended. Avoid spam, advertising, or misleading claims.</li>
-                <li>Respect privacy. Do not post other people’s personal information without their consent.</li>
-                <li>Only RSVP to events you intend to attend. You may cancel RSVPs before the event starts.</li>
-                <li>Event hosts and administrators may view attendee names and emails for coordination and safety purposes.</li>
-                <li>We may remove content or restrict accounts that violate these terms or applicable laws.</li>
-                <li>Your data is handled according to our Privacy Notice. We store essential profile information and event activity to provide the service.</li>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>No hate speech, harassment, or abusive content.</li>
+                <li>Post honest, relevant reviews only.</li>
+                <li>Respect privacy; do not share others’ info.</li>
+                <li>RSVP only to events you plan to attend.</li>
+                <li>Hosts/admins may view attendee details for coordination.</li>
+                <li>Accounts may be restricted for violating these terms.</li>
+                <li>Data handled per our Privacy Notice for service provision.</li>
               </ul>
-              <p>These terms may be updated. Continued use of PUK360 after updates means you accept the changes.</p>
+              <p>Continued use means you accept any updates to these terms.</p>
             </div>
-            <div className="mt-4 flex justify-end">
-              <Button type="button" variant="primary" onClick={()=>setShowTcs(false)}>Got it</Button>
+            <div className="mt-3 flex justify-end">
+              <Button type="button" variant="primary" size="small" onClick={() => setShowTcs(false)}>
+                Got it
+              </Button>
             </div>
           </div>
         </div>
