@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { VictoryBar, VictoryChart, VictoryAxis, VictoryTheme, VictoryLine } from 'victory';
+import jsPDF from 'jspdf';
 import AdminUserEdit from './AdminUserEdit';
 import HostCreateEvent from './HostCreateEvent';
 import HostEventDetail from './HostEventDetail';
@@ -365,12 +366,57 @@ function LogsPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
+  const savePdf = async (mode) => {
+    try {
+      setLoading(true); setError('');
+      const token = localStorage.getItem('token');
+      const wantAll = mode === 'all';
+      const raw = await api.admin.auditLogs(wantAll ? 'all' : 100, token, q);
+      const text = (raw || []).map((l) => {
+        const t = l.createdAt ? new Date(l.createdAt).toLocaleString() : '';
+        const who = l.userName ? `${l.userName} <${l.userEmail||''}>` : (l.userId ? `User #${l.userId}` : 'System');
+        const tgt = l.targetType ? `${l.targetType}${l.targetId?`#${l.targetId}`:''}` : '';
+        let meta = '';
+        try { meta = l.metadata ? JSON.stringify(JSON.parse(l.metadata), null, 2) : ''; }
+        catch { meta = l.metadata || ''; }
+        return `[${t}] ${l.eventType}${tgt?` (${tgt})`:''} — ${who}${meta?`\n${meta}`:''}`;
+      }).join('\n\n');
+
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      const margin = 36; // 0.5in
+      const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+      const linesArr = doc.splitTextToSize(text || 'No logs.', maxWidth);
+      let cursorY = margin;
+      const header = `PUK360 Audit Logs — ${new Date().toLocaleString()} (${wantAll ? 'All' : 'Last 100'})`;
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(12);
+      doc.text(header, margin, cursorY);
+      cursorY += 20;
+      for (const ln of linesArr) {
+        if (cursorY > doc.internal.pageSize.getHeight() - margin) {
+          doc.addPage(); cursorY = margin;
+          doc.setFont('courier', 'normal'); doc.setFontSize(12);
+        }
+        doc.text(ln, margin, cursorY);
+        cursorY += 14;
+      }
+      const stamp = new Date().toISOString().replace(/[:T]/g,'-').slice(0,19);
+      doc.save(`puk360-logs-${wantAll ? 'all' : 'last100'}-${stamp}.pdf`);
+    } catch (e) {
+      setError(e.message || 'Failed to save PDF');
+    } finally { setLoading(false); }
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex gap-2">
           <input className="rounded border px-3 py-1 text-sm" placeholder="Search logs" value={q} onChange={(e)=>setQ(e.target.value)} />
           <button className="rounded bg-primary px-3 py-1 text-sm font-semibold text-white hover:opacity-90" onClick={load} disabled={loading}>{loading?'Loading…':'Refresh'}</button>
+        </div>
+        <div className="flex gap-2">
+          <button className="rounded bg-primary px-3 py-1 text-sm font-semibold text-white hover:opacity-90" onClick={() => savePdf('100')} disabled={loading}>Save PDF (Last 100)</button>
+          <button className="rounded bg-primary px-3 py-1 text-sm font-semibold text-white hover:opacity-90" onClick={() => savePdf('all')} disabled={loading}>Save PDF (All)</button>
         </div>
       </div>
       {error && <div className="rounded border border-red-300 bg-red-50 p-2 text-sm text-red-700">{error}</div>}
