@@ -14,7 +14,7 @@ applications:
           commands:
             - CI='' npm run build
       artifacts:
-        baseDirectory: build      # CRA outputs /build (matches your scripts)
+        baseDirectory: build
         files:
           - '**/*'
       cache:
