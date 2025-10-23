@@ -229,7 +229,7 @@ export default function HostMain({ onSignOut }) {
   );
 
   const [query, setQuery] = useState('');
-  const [range, setRange] = useState('upcoming'); // 'upcoming' | 'past' | 'all'
+  const [range, setRange] = useState('all'); // 'all' | 'upcoming' | 'past'
   const [statusFilter, setStatusFilter] = useState(''); // '', 'Scheduled','Cancelled','Completed'
   const filteredMyEvents = myEvents.filter((e) => {
     const d = new Date((typeof e.Date === 'string' ? e.Date : e.Date?.toString()) + 'T00:00:00');
@@ -253,7 +253,7 @@ export default function HostMain({ onSignOut }) {
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex flex-1 min-w-[300px] overflow-hidden rounded-lg border border-secondary/40">
-            {['upcoming','past','all'].map((r, idx) => (
+            {['all','upcoming','past'].map((r, idx) => (
               <button
                 key={r}
                 type="button"
