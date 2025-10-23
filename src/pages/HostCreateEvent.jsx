@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Button from '../components/Button';
 import { api } from '../api/client';
 
@@ -14,6 +14,11 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
   const fileInputRef = useRef(null);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [imageUrl, setImageUrl] = useState(''); // remote public URL from S3
+  const [imageKey, setImageKey] = useState(''); // S3 object key
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [notify, setNotify] = useState({ visible: false, type: 'error', message: '' });
 
   const [form, setForm] = useState({
     Title: '',
@@ -32,19 +37,65 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
 
   // Image upload handlers (drag-and-drop or click to browse)
   const handleChooseFile = () => fileInputRef.current?.click();
-  const handleFile = (file) => {
+  const handleFile = async (file) => {
     if (!file) return;
-    if (!file.type?.startsWith('image/')) {
-      setError('Please select an image file (PNG, JPG, JPEG, GIF, WebP).');
+
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+    const maxBytes = 8 * 1024 * 1024; // 8MB
+    if (!file.type || !allowed.includes(file.type)) {
+      toastError('Invalid file. Allowed: PNG, JPG/JPEG, WEBP, GIF (≤ 8MB).');
       return;
     }
+    if (file.size > maxBytes) {
+      toastError('File too large. Max size is 8MB.');
+      return;
+    }
+
     setError('');
     setImageFile(file);
+
+    // Revoke previous preview to avoid leaks
+    if (imagePreview) {
+      try { URL.revokeObjectURL(imagePreview); } catch (_) {}
+    }
+    // Immediate local preview
     try {
       const url = URL.createObjectURL(file);
       setImagePreview(url);
     } catch (_e) {
       setImagePreview('');
+    }
+
+    // Begin presign + upload flow
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Not signed in');
+
+      setUploading(true);
+      setUploadProgress(0);
+
+      const presign = await api.poster.presign(file.type, token);
+      if (!presign || !presign.uploadUrl || !presign.publicUrl) {
+        throw new Error('Failed to presign upload.');
+      }
+
+      const { uploadUrl, publicUrl, key } = presign;
+
+      await putWithProgress(uploadUrl, file, file.type, (pct) => setUploadProgress(pct));
+
+      setImageUrl(publicUrl || '');
+      setImageKey(key || '');
+      // swap preview to remote URL to match acceptance
+      try { if (imagePreview) URL.revokeObjectURL(imagePreview); } catch (_) {}
+      if (publicUrl) setImagePreview(publicUrl);
+      setUploadProgress(100);
+      setUploading(false);
+    } catch (e) {
+      setUploading(false);
+      setUploadProgress(0);
+      setImageUrl('');
+      setImageKey('');
+      toastError(e?.message || 'Image upload failed');
     }
   };
   const handleInputChange = (e) => handleFile(e.target.files?.[0]);
@@ -55,6 +106,47 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
   };
   const preventDefault = (e) => e.preventDefault();
 
+  // XHR PUT with upload progress
+  function putWithProgress(url, blob, contentType, onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', url);
+      xhr.setRequestHeader('Content-Type', contentType);
+      xhr.upload.onprogress = (evt) => {
+        if (evt.lengthComputable) {
+          const pct = Math.round((evt.loaded / evt.total) * 100);
+          onProgress?.(pct);
+        }
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(true);
+        } else {
+          reject(new Error(`Upload failed (${xhr.status})`));
+        }
+      };
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.send(blob);
+    });
+  }
+
+  // simple in-component toast
+  function toastError(message) {
+    setNotify({ visible: true, type: 'error', message });
+    // also keep legacy inline error for accessibility
+    setError(message);
+    window.clearTimeout(toastError._t);
+    toastError._t = window.setTimeout(() => setNotify((p) => ({ ...p, visible: false })), 3500);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        try { URL.revokeObjectURL(imagePreview); } catch (_) {}
+      }
+    };
+  }, [imagePreview]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -63,24 +155,9 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
       const user = userRaw ? JSON.parse(userRaw) : null;
       if (!token || !user?.id) throw new Error('Not signed in');
 
-      // Optional: upload selected image to S3 via presigned URL (when backend supports it)
-      let imageUrl = null;
-      if (imageFile) {
-        try {
-          const { uploadUrl, publicUrl } = await api.uploads.presignImage(
-            imageFile.name,
-            imageFile.type,
-            token
-          );
-          await fetch(uploadUrl, {
-            method: 'PUT',
-            headers: { 'Content-Type': imageFile.type },
-            body: imageFile,
-          });
-          imageUrl = publicUrl || null;
-        } catch (_) {
-          imageUrl = null; // uploads not configured yet
-        }
+      if (imageFile && uploading) {
+        toastError('Please wait for image upload to finish.');
+        return;
       }
 
       const payload = {
@@ -88,7 +165,11 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
         Host_User_ID: user.id,
         Status: 'Scheduled',
       };
-      if (imageUrl) payload.ImageUrl = imageUrl;
+      if (!imageUrl) {
+        toastError('Please add an image for your event.');
+        return;
+      }
+      payload.ImageUrl = imageUrl;
 
       const created = await api.events.create(payload, token);
       onCreated?.(created);
@@ -107,7 +188,7 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
         <div>
           <label className="mb-2 block text-sm font-medium text-secondary">Event image</label>
           <div
-            className="flex h-56 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-secondary/50 bg-secondary/5 p-4 text-center hover:bg-secondary/10"
+            className="relative flex h-56 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-secondary/50 bg-secondary/5 p-4 text-center hover:bg-secondary/10"
             onClick={handleChooseFile}
             onDragOver={preventDefault}
             onDragEnter={preventDefault}
@@ -124,7 +205,22 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
                 <p className="mt-2 text-xs">PNG, JPG, JPEG, GIF, WebP</p>
               </div>
             )}
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleInputChange} />
+            {/* Progress bar overlay */}
+            {uploading && (
+              <div className="absolute inset-x-0 bottom-0 mx-3 mb-3 h-2 rounded-full bg-secondary/30">
+                <div
+                  className="h-2 rounded-full bg-primary transition-[width]"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              className="hidden"
+              onChange={handleInputChange}
+            />
           </div>
         </div>
 
@@ -189,9 +285,15 @@ export default function HostCreateEvent({ onCancel, onCreated }) {
         </div>
         </form>
       </div>
+
+      {/* Toast notification */}
+      {notify.visible && (
+        <div className="pointer-events-none fixed right-6 top-6 z-50">
+          <div className={`rounded-lg px-4 py-2 text-sm shadow ${notify.type==='error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
+            {notify.message}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-
-

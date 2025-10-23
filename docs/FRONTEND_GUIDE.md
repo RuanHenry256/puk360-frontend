@@ -11,13 +11,14 @@ This guide lists the major UI components and flows implemented.
 - `src/pages/ReviewEventDetail.js`
   - Fetches `GET /api/events/:id`
   - Renders Title, Description, Date/startTime–endTime, Hosted By, Venue/Campus, Image
+  - Poster renders inline with a 4:3 crop (responsive ratio box) and opens a full-image modal on click
 
 ## Host workspace
 - `src/pages/HostMain.jsx`
   - Tabs: Overview, My Events, Feed, Account
   - Overview shows KPIs and insights using `/api/hosts/:id/...` endpoints
   - My Events: search + filters, click row → `HostEventDetail` overlay
-  - Create Event overlay: `HostCreateEvent.jsx` (free‑text venue, ImageUrl, etc.)
+  - Create Event overlay: `HostCreateEvent.jsx` (free‑text venue, poster upload with presign + progress; sends `ImageUrl` and requires image)
   - Creation UI is responsive:
     - Desktop: “+ Create Event” button on the right of the filter bar
     - Mobile: floating `+` FAB at the bottom
@@ -117,4 +118,10 @@ Notes
 
 ## Environment
 - Frontend uses `REACT_APP_API_URL` to reach the backend (defaults to `http://localhost:5000`).
+
+## Poster Uploads (flow)
+- Validate image type (png, jpg/jpeg, webp, gif) and ≤ 8MB
+- `POST /api/poster/presign` with `{ mimeType }`
+- Upload with `PUT uploadUrl` and `Content-Type: mimeType` (XHR used for progress)
+- On success, keep the remote `publicUrl` as the preview and include it as `ImageUrl` when creating the event
 

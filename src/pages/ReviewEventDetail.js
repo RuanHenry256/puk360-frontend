@@ -261,8 +261,21 @@ export default function ReviewEventDetail({ eventId, onBack, onShowProfile }) {
         <div className="grid gap-6">
           {/* Content card */}
           <div className="overflow-hidden rounded-2xl border border-secondary/40 bg-primary/5 p-4 shadow-sm sm:p-6">
-            <div className="flex h-48 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-xl font-bold text-white" onClick={openFullImage}>
-              {event.ImageUrl ? 'Click to view full image' : 'No image available'}
+            {/* Poster preview (4:3 crop) */}
+            <div className="relative w-full cursor-pointer overflow-hidden rounded-xl" onClick={openFullImage} aria-label="View full image">
+              <div className="pt-[75%]" />
+              {event.ImageUrl ? (
+                <img
+                  src={event.ImageUrl}
+                  alt={event.Title}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-xl font-bold text-white">
+                  No image available
+                </div>
+              )}
             </div>
             <div className="mt-6">
               <h2 className="mb-2 text-3xl font-bold text-primary sm:text-4xl">{event.Title}</h2>

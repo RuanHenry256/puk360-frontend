@@ -342,6 +342,10 @@ function LogsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [q, setQ] = useState('');
+  const [confirming, setConfirming] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [clearDone, setClearDone] = useState(false);
 
   async function load() {
     try {
@@ -407,18 +411,63 @@ function LogsPage() {
     } finally { setLoading(false); }
   };
 
+  const openClearModal = () => { setConfirming(true); setConfirmText(''); };
+  const performClear = async () => {
+    if ((confirmText || '').trim().toLowerCase() !== 'confirm') return;
+    try {
+      setDeleting(true); setError('');
+      // Save a final copy of all logs locally
+      await savePdf('all');
+      // Call backend to clear
+      const token = localStorage.getItem('token');
+      await api.admin.clearLogs(token);
+      setConfirmText('');
+      setClearDone(true);
+      await load();
+    } catch (e) {
+      setError(e.message || 'Failed to clear logs');
+    } finally { setDeleting(false); }
+  };
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <input className="rounded border px-3 py-1 text-sm" placeholder="Search logs" value={q} onChange={(e)=>setQ(e.target.value)} />
-          <button className="rounded bg-primary px-3 py-1 text-sm font-semibold text-white hover:opacity-90" onClick={load} disabled={loading}>{loading?'Loading…':'Refresh'}</button>
+      {/* Controls: stack on mobile to match Events list style */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full gap-2 sm:w-auto">
+          <input className="w-full rounded border px-3 py-2 text-sm sm:w-64" placeholder="Search logs" value={q} onChange={(e)=>setQ(e.target.value)} />
+          <button className="rounded bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90" onClick={load} disabled={loading}>{loading?'Loading…':'Refresh'}</button>
         </div>
-        <div className="flex gap-2">
-          <button className="rounded bg-primary px-3 py-1 text-sm font-semibold text-white hover:opacity-90" onClick={() => savePdf('100')} disabled={loading}>Save PDF (Last 100)</button>
-          <button className="rounded bg-primary px-3 py-1 text-sm font-semibold text-white hover:opacity-90" onClick={() => savePdf('all')} disabled={loading}>Save PDF (All)</button>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <button className="flex-1 rounded bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 sm:flex-none" onClick={() => savePdf('100')} disabled={loading}>Save PDF (Last 100)</button>
+          <button className="flex-1 rounded bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 sm:flex-none" onClick={() => savePdf('all')} disabled={loading}>Save PDF (All)</button>
+          <button className="flex-1 rounded bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 sm:flex-none" onClick={openClearModal} disabled={loading || deleting}>Clear Logs</button>
         </div>
       </div>
+      {confirming && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-xl">
+            {!clearDone ? (
+              <>
+                <h3 className="mb-2 text-lg font-semibold text-red-700">Delete all logs?</h3>
+                <p className="mb-3 text-sm text-text">This will permanently delete all logs and cannot be undone. A final entry will be recorded that the logs were cleared. Type <span className="font-semibold text-red-700">confirm</span> to proceed.</p>
+                <input className="mb-4 w-full rounded border px-3 py-2" value={confirmText} onChange={(e)=>setConfirmText(e.target.value)} placeholder="confirm" />
+                <div className="flex justify-end gap-2">
+                  <button className="rounded border border-secondary/40 px-4 py-2 text-sm text-secondary hover:bg-secondary/10" onClick={()=>{ setConfirming(false); setConfirmText(''); setClearDone(false); }} disabled={deleting}>Cancel</button>
+                  <button className="rounded bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60" disabled={deleting || (confirmText||'').trim().toLowerCase()!=='confirm'} onClick={performClear}>{deleting ? 'Deleting…' : 'Delete Logs'}</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="mb-2 text-lg font-semibold text-green-700">Logs cleared</h3>
+                <p className="mb-4 text-sm text-text">A final copy was saved and an entry was added noting the clear operation.</p>
+                <div className="flex justify-end">
+                  <button className="rounded bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90" onClick={()=>{ setConfirming(false); setClearDone(false); }}>Back</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       {error && <div className="rounded border border-red-300 bg-red-50 p-2 text-sm text-red-700">{error}</div>}
       <textarea readOnly spellCheck={false} className="h-[70vh] w-full resize-none rounded-lg bg-black p-4 font-mono text-sm text-green-200" value={lines} />
     </div>
@@ -776,6 +825,8 @@ export default function AdminDashboard({ onSignOut }) {
   const [apps, setApps] = useState([]);
   const [appsLoading, setAppsLoading] = useState(false);
   const [appsError, setAppsError] = useState('');
+  const [appsSearch, setAppsSearch] = useState('');
+  const [appsStatusFilter, setAppsStatusFilter] = useState('Pending');
   const [selectedApp, setSelectedApp] = useState(null);
   const [users, setUsers] = useState([]);
   // Events for analytics/overview (separate from EventsPage local state)
@@ -792,6 +843,7 @@ export default function AdminDashboard({ onSignOut }) {
       const token = localStorage.getItem('token');
       const list = await api.admin.listHostApplications(status, token);
       setApps(list);
+      setAppsStatusFilter(status);
     } catch (e) {
       setAppsError(e.message || 'Failed to load applications');
     } finally { setAppsLoading(false); }
@@ -886,14 +938,32 @@ export default function AdminDashboard({ onSignOut }) {
     return (
       <div className="space-y-6">
         <div className="rounded-2xl border border-secondary/40 bg-primary/5 p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 grid gap-2 sm:grid-cols-2 sm:items-center">
             <h2 className="text-2xl font-bold text-primary">Host Applications</h2>
-            <div className="flex gap-2">
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={() => loadApps('Pending')}>Pending</button>
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={() => loadApps('Approved')}>Approved</button>
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={() => loadApps('Rejected')}>Rejected</button>
-              <button className="rounded-lg border border-secondary/60 px-3 py-1.5 text-sm text-secondary hover:border-primary hover:text-primary" onClick={() => loadApps('All')}>All</button>
+            <div className="flex w-full flex-wrap gap-2 sm:justify-end">
+              {['Pending','Approved','Rejected','All'].map((s) => (
+                <button
+                  key={s}
+                  className={[
+                    'px-4 py-2 text-sm rounded-full border',
+                    appsStatusFilter === s
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white text-secondary border-secondary/60 hover:border-primary hover:text-primary',
+                  ].join(' ')}
+                  onClick={() => loadApps(s)}
+                >
+                  {s}
+                </button>
+              ))}
             </div>
+          </div>
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <input
+              className="w-full rounded-lg border border-secondary/60 px-3 py-2 text-sm sm:w-80"
+              placeholder="Search by org or applicant"
+              value={appsSearch}
+              onChange={(e)=>setAppsSearch(e.target.value)}
+            />
           </div>
           {appsLoading && <div className="flex items-center justify-center py-8"><div className="spinner" /></div>}
           {appsError && <div className="rounded-lg border border-secondary/40 bg-white p-4 text-red-600">{appsError}</div>}
@@ -903,7 +973,11 @@ export default function AdminDashboard({ onSignOut }) {
                 <div className="rounded-lg border border-secondary/40 bg-white p-4 text-secondary">No applications</div>
               ) : (
                 <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {apps.map((a) => (
+                  {(apps || []).filter((a)=>{
+                    const q=(appsSearch||'').toLowerCase().trim(); if(!q) return true;
+                    const hay=[a.Org_Name,a.Applicant_Name,a.Applicant_Email].map(x=>String(x||'').toLowerCase());
+                    return hay.some(h=>h.includes(q));
+                  }).map((a) => (
                     <li key={a.Application_ID}>
                       <button
                         type="button"

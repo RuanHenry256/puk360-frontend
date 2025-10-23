@@ -122,6 +122,17 @@ export const api = {
       });
     },
   },
+  poster: {
+    // Request presign for poster uploads against /api/poster/presign
+    // Expects { mimeType } and returns { key, uploadUrl, publicUrl }
+    presign: async (mimeType, token) => {
+      return http('/api/poster/presign', {
+        method: 'POST',
+        body: { mimeType },
+        token,
+      });
+    },
+  },
   admin: {
     listUsers: async (q = '', token) => {
       const qp = q && String(q).trim().length ? `?q=${encodeURIComponent(q)}` : '';
@@ -150,6 +161,10 @@ export const api = {
       if (q && String(q).trim()) qs.set('q', String(q).trim());
       const res = await http(`/api/admin/logs${qs.toString() ? `?${qs.toString()}` : ''}`, { method: 'GET', token });
       return Array.isArray(res?.data) ? res.data : [];
+    },
+    clearLogs: async (token) => {
+      const res = await http('/api/admin/logs/clear', { method: 'POST', token });
+      return res?.ok !== false;
     },
     updateUser: async (id, payload, token) => {
       const res = await http(`/api/admin/users/${id}`, { method: 'PATCH', body: payload, token });
